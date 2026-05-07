@@ -277,8 +277,26 @@ async function analyze(text){
     const data = await res.json();
     const raw = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
     let c;
-    try{ c=JSON.parse(raw.replace(/```json|```/g,'').trim()); }
-    catch(e){ c={type:'suggestion',icon:'💡',label:'Tip',observation:'Keep the conversation focused.',say_this:'Can we make sure we capture who owns this before moving on?'}; }
+    try{ 
+      // Try to extract JSON even if wrapped in markdown or extra text
+      const jsonMatch = raw.match(/\{[\s\S]*\}/);
+      const jsonStr = jsonMatch ? jsonMatch[0] : raw;
+      c = JSON.parse(jsonStr.replace(/```json|```/g,'').trim()); 
+      // Validate required fields
+      if(!c.type || !c.say_this) throw new Error('Invalid format');
+    }
+    catch(e){ 
+      // Try to extract say_this from raw text if JSON fails
+      const sayMatch = raw.match(/say_this["\s:]+([^"}\n]+)/i);
+      const obsMatch = raw.match(/observation["\s:]+([^"}\n]+)/i);
+      c={
+        type:'suggestion',
+        icon:'💡',
+        label:'Coach Tip',
+        observation: obsMatch ? obsMatch[1].trim() : 'Something important was just said.',
+        say_this: sayMatch ? sayMatch[1].trim() : 'Can you clarify that so I can capture it correctly for the team?'
+      }; 
+    }
     removeThinking(); addCard(c); setStatus('listening','Listening');
   }catch(e){
     removeThinking();

@@ -6,11 +6,7 @@
 <title>PO Coach</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&display=swap');
-  :root {
-    --bg:#0a0a0f;--surface:#12121a;--surface2:#1a1a26;--border:#2a2a3d;
-    --accent:#6c63ff;--accent2:#ff6584;--accent3:#43e97b;--warn:#f7971e;
-    --text:#e8e8f0;--text-dim:#8888aa;--text-bright:#ffffff;
-  }
+  :root{--bg:#0a0a0f;--surface:#12121a;--surface2:#1a1a26;--border:#2a2a3d;--accent:#6c63ff;--accent2:#ff6584;--accent3:#43e97b;--warn:#f7971e;--text:#e8e8f0;--text-dim:#8888aa;--text-bright:#ffffff}
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
   body{background:var(--bg);color:var(--text);font-family:'Syne',sans-serif;min-height:100vh}
   body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 20% 20%,rgba(108,99,255,.08) 0%,transparent 50%),radial-gradient(ellipse at 80% 80%,rgba(255,101,132,.06) 0%,transparent 50%);pointer-events:none;z-index:0}
@@ -75,6 +71,7 @@
   .action-item{display:flex;align-items:flex-start;gap:8px;font-size:13px;line-height:1.5;padding:8px 10px;background:rgba(255,255,255,.03);border-radius:8px}
   .action-item::before{content:'→';color:var(--accent);font-family:'DM Mono',monospace;flex-shrink:0;margin-top:1px}
   .error-msg{padding:12px 16px;background:rgba(255,101,132,.1);border:1px solid rgba(255,101,132,.3);border-radius:12px;font-size:13px;color:var(--accent2);font-family:'DM Mono',monospace}
+  .raw-debug{padding:10px;background:rgba(255,255,255,.03);border-radius:8px;font-size:11px;font-family:'DM Mono',monospace;color:var(--text-dim);word-break:break-all;margin-top:8px}
   ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
 </style>
 </head>
@@ -155,9 +152,7 @@ async function askPermission() {
   } catch(e) {
     if(e.name==='NotAllowedError'){
       document.getElementById('permScreen').innerHTML='<div style="font-size:48px">🚫</div><h2 style="color:var(--accent2)">Access Denied</h2><p>Settings → Safari → Microphone → Allow, then refresh.</p><button class="big-btn" onclick="location.reload()">🔄 Refresh</button>';
-    } else {
-      alert('Error: '+e.message);
-    }
+    } else { alert('Error: '+e.message); }
   }
 }
 
@@ -226,18 +221,11 @@ function setStatus(type,text){
 async function analyze(text){
   if(thinking) return;
   thinking=true; setStatus('thinking','Thinking...'); showThinking();
-  
-  var prompt = 'You are a Product Owner meeting coach for Pantha Shah, a first-time PO at Walgreens. ' +
-    'The team is working on fixing status mismatches between Promote and IC+ systems. Mario Cano escalated this issue. ' +
-    'Team members: Lakshmi Vijai, Tarun Kumar, Smita Wandhare, Vinoth. They need production logs from Sayantan Bera at TCS.\n\n' +
-    'What was just said in the meeting:\n"' + text + '"\n\n' +
-    'Full conversation so far:\n"' + fullTranscript.slice(-400) + '"\n\n' +
-    'Give Pantha coaching. Respond with EXACTLY these 4 lines, nothing else:\n' +
-    'TYPE: urgent OR suggestion OR positive OR warning\n' +
-    'ICON: one emoji\n' +
-    'OBSERVATION: one short sentence about what just happened\n' +
-    'SAY: exact words Pantha should say right now in natural conversational language under 30 words\n\n' +
-    'Important: SAY must sound like a real person not corporate speak. Push to clarify vague points. Identify who owns action items. Ask for plain English when technical jargon used.';
+
+  // Simple direct prompt - no formatting requirements, just get the coaching
+  var prompt = 'You are coaching Pantha Shah who is a first-time Product Owner at Walgreens in a meeting about fixing status mismatches between their Promote and IC+ systems. Mario Cano (her boss) escalated this issue. Her team includes Lakshmi Vijai, Tarun Kumar, Smita Wandhare and Vinoth. They need production logs from Sayantan Bera at TCS to investigate.\n\n' +
+    'This was just said in the meeting: "' + text + '"\n\n' +
+    'Give Pantha one specific thing to say right now to be a good Product Owner. Just give me the exact words she should say. Nothing else. No labels, no formatting, just the words. Make it sound natural and human, not corporate.';
 
   try{
     var res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key='+GEMINI_KEY,{
@@ -245,32 +233,35 @@ async function analyze(text){
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({
         contents:[{parts:[{text:prompt}]}],
-        generationConfig:{temperature:0.7,maxOutputTokens:300}
+        generationConfig:{temperature:0.8,maxOutputTokens:150}
       })
     });
     var data = await res.json();
-    var raw = (data.candidates&&data.candidates[0]&&data.candidates[0].content&&data.candidates[0].content.parts&&data.candidates[0].content.parts[0]&&data.candidates[0].content.parts[0].text)||'';
-    
-    var typeM=raw.match(/TYPE:\s*(\w+)/i);
-    var iconM=raw.match(/ICON:\s*(\S+)/i);
-    var obsM=raw.match(/OBSERVATION:\s*(.+)/i);
-    var sayM=raw.match(/SAY:\s*(.+)/i);
-    
-    var c;
-    if(typeM&&sayM){
-      var t=typeM[1].toLowerCase().trim();
-      if(['urgent','suggestion','positive','warning'].indexOf(t)===-1) t='suggestion';
-      c={
-        type:t,
-        icon:iconM?iconM[1].trim():'💡',
-        label:t.charAt(0).toUpperCase()+t.slice(1),
-        observation:obsM?obsM[1].trim():'Important point raised in the meeting.',
-        say_this:sayM[1].trim()
-      };
-    } else {
-      c={type:'suggestion',icon:'💡',label:'Tip',observation:'Keep the conversation focused.',say_this:'Can you walk me through that so I can make sure we capture it correctly?'};
+    var raw = '';
+    if(data.candidates&&data.candidates[0]&&data.candidates[0].content&&data.candidates[0].content.parts&&data.candidates[0].content.parts[0]){
+      raw = data.candidates[0].content.parts[0].text || '';
     }
-    removeThinking(); addCard(c); setStatus('listening','Listening');
+
+    raw = raw.trim().replace(/^["']|["']$/g,'');
+
+    if(raw.length > 5){
+      // Determine urgency based on keywords
+      var type = 'suggestion';
+      var icon = '💡';
+      var tl = text.toLowerCase();
+      if(tl.indexOf('decision')>-1||tl.indexOf('agree')>-1||tl.indexOf('confirm')>-1){ type='urgent'; icon='🚨'; }
+      else if(tl.indexOf('great')>-1||tl.indexOf('good')>-1||tl.indexOf('done')>-1){ type='positive'; icon='✅'; }
+      else if(tl.indexOf("don't know")>-1||tl.indexOf('not sure')>-1||tl.indexOf('unclear')>-1){ type='warning'; icon='⚠️'; }
+      else if(tl.indexOf('timeline')>-1||tl.indexOf('deadline')>-1||tl.indexOf('when')>-1){ type='urgent'; icon='⏰'; }
+
+      var label = {urgent:'Speak Up',suggestion:'Coach Tip',positive:'Good Move',warning:'Watch Out'}[type];
+
+      addCard({type:type, icon:icon, label:label, observation:'Based on what was just said:', say_this:raw});
+    } else {
+      addCard({type:'suggestion',icon:'💡',label:'Coach Tip',observation:'Keep the conversation moving:',say_this:'Before we move on — who is owning this and what is the next step?'});
+    }
+
+    removeThinking(); setStatus('listening','Listening');
   }catch(e){
     removeThinking(); showError('Connection issue. Still listening...'); setStatus('listening','Listening');
   }
@@ -300,11 +291,9 @@ function addCard(c){
 async function getSummary(){
   if(!fullTranscript.trim()){showError('Nothing recorded yet.');return;}
   stopListening(); setStatus('thinking','Summarizing...'); showThinking();
-  
-  var prompt = 'Extract action items for Pantha Shah, a first-time Product Owner at Walgreens on the Digital Refill project. ' +
-    'Return ONLY a numbered list of action items, one per line, starting with a verb. Max 6 items. ' +
-    'Focus on what Pantha specifically needs to do as the PO.\n\nMeeting transcript:\n' + fullTranscript;
-  
+
+  var prompt = 'Based on this meeting transcript, list the specific action items for Pantha Shah who is the Product Owner. Number each item and start with a verb. Maximum 6 items. Be specific.\n\nTranscript:\n'+fullTranscript;
+
   try{
     var res=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key='+GEMINI_KEY,{
       method:'POST',
@@ -315,8 +304,11 @@ async function getSummary(){
       })
     });
     var data=await res.json();
-    var raw=(data.candidates&&data.candidates[0]&&data.candidates[0].content&&data.candidates[0].content.parts&&data.candidates[0].content.parts[0]&&data.candidates[0].content.parts[0].text)||'';
-    var items=raw.split('\n').filter(function(l){return l.trim().length>5;}).map(function(l){return l.replace(/^\d+\.\s*/,'').trim();}).filter(function(l){return l.length>0;}).slice(0,6);
+    var raw='';
+    if(data.candidates&&data.candidates[0]&&data.candidates[0].content&&data.candidates[0].content.parts&&data.candidates[0].content.parts[0]){
+      raw=data.candidates[0].content.parts[0].text||'';
+    }
+    var items=raw.split('\n').filter(function(l){return l.trim().length>5;}).map(function(l){return l.replace(/^\d+[\.\)]\s*/,'').trim();}).filter(function(l){return l.length>0;}).slice(0,6);
     if(items.length===0) items=['Follow up on action items from this meeting'];
     removeThinking(); showSummary(items); setStatus('idle','Done');
   }catch(e){removeThinking();showError('Could not generate summary.');setStatus('idle','Error');}

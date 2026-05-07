@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>PO Coach</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&display=swap');
+  :root {
+    --bg: #0a0a0f; --surface: #12121a; --surface2: #1a1a26; --border: #2a2a3d;
+    --accent: #6c63ff; --accent2: #ff6584; --accent3: #43e97b; --warn: #f7971e;
+    --text: #e8e8f0; --text-dim: #8888aa; --text-bright: #ffffff;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body { background: var(--bg); color: var(--text); font-family: 'Syne', sans-serif; min-height: 100vh; }
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background: radial-gradient(ellipse at 20% 20%, rgba(108,99,255,0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 80%, rgba(255,101,132,0.06) 0%, transparent 50%);
+    pointer-events: none; z-index: 0;
+  }
+  .app { position: relative; z-index: 1; max-width: 480px; margin: 0 auto; padding: 16px; min-height: 100vh; display: flex; flex-direction: column; gap: 12px; padding-bottom: 40px; }
+  .header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; background: var(--surface); border: 1px solid var(--border); border-radius: 16px; }
+  .header h1 { font-size: 18px; font-weight: 800; color: var(--text-bright); letter-spacing: -0.5px; }
+  .header p { font-size: 11px; color: var(--text-dim); font-family: 'DM Mono', monospace; margin-top: 2px; }
+  .status-pill { display: flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 20px; font-size: 11px; font-family: 'DM Mono', monospace; border: 1px solid var(--border); background: rgba(136,136,170,0.1); color: var(--text-dim); transition: all 0.3s; }
+  .status-pill.listening { background: rgba(67,233,123,0.1); color: var(--accent3); border-color: rgba(67,233,123,0.3); }
+  .status-pill.thinking { background: rgba(108,99,255,0.1); color: var(--accent); border-color: rgba(108,99,255,0.3); }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+  .dot.pulse { animation: pulse 1.2s ease-in-out infinite; }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(0.8)} }
+
+  /* Permission screen */
+  .perm-screen { background: var(--surface); border: 1px solid rgba(108,99,255,0.4); border-radius: 20px; padding: 28px 20px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 16px; }
+  .perm-screen h2 { font-size: 22px; font-weight: 800; color: var(--text-bright); }
+  .perm-screen .sub { font-size: 14px; color: var(--text-dim); line-height: 1.6; }
+  .steps { text-align: left; width: 100%; display: flex; flex-direction: column; gap: 8px; }
+  .step { display: flex; align-items: flex-start; gap: 12px; padding: 10px 12px; background: rgba(255,255,255,0.03); border-radius: 10px; font-size: 13px; line-height: 1.5; }
+  .step-n { width: 24px; height: 24px; border-radius: 50%; background: var(--accent); color: white; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .big-btn { width: 100%; padding: 16px; border-radius: 14px; border: none; font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; cursor: pointer; transition: all 0.2s; background: linear-gradient(135deg, var(--accent), #9c5fff); color: white; box-shadow: 0 4px 20px rgba(108,99,255,0.4); }
+  .big-btn:active { transform: scale(0.98); }
+  .hint { font-size: 11px; color: var(--text-dim); line-height: 1.5; }
+
+  /* Main UI */
+  .main-ui { display: none; flex-direction: column; gap: 12px; }
+  .main-ui.show { display: flex; }
+  .mic-section { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 24px 20px; background: var(--surface); border: 1px solid var(--border); border-radius: 20px; }
+  .mic-btn { width: 80px; height: 80px; border-radius: 50%; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 32px; transition: all 0.2s; background: linear-gradient(135deg, var(--accent), #9c5fff); box-shadow: 0 4px 24px rgba(108,99,255,0.4); }
+  .mic-btn.active { background: linear-gradient(135deg, var(--accent2), #ff4060); animation: micPulse 1.5s ease-in-out infinite; }
+  @keyframes micPulse { 0%,100%{box-shadow:0 4px 32px rgba(255,101,132,0.5)} 50%{box-shadow:0 4px 48px rgba(255,101,132,0.8),0 0 0 12px rgba(255,101,132,0.1)} }
+  .mic-label { font-size: 12px; color: var(--text-dim); font-family: 'DM Mono', monospace; }
+  .transcript-box { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 16px; min-height: 80px; max-height: 120px; overflow-y: auto; }
+  .transcript-box h3 { font-size: 10px; font-family: 'DM Mono', monospace; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+  .transcript-text { font-size: 13px; line-height: 1.6; color: var(--text); font-family: 'DM Mono', monospace; }
+  .transcript-text.empty { color: var(--text-dim); font-style: italic; }
+  .controls { display: flex; gap: 8px; }
+  .ctrl-btn { flex: 1; padding: 12px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); color: var(--text-dim); font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+  .ctrl-btn:active { background: var(--surface2); color: var(--text); }
+  .coach-section { display: flex; flex-direction: column; gap: 10px; }
+  .coach-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 16px; animation: slideIn 0.4s ease-out; }
+  @keyframes slideIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+  .coach-card.urgent { border-color: rgba(255,101,132,0.4); background: rgba(255,101,132,0.05); }
+  .coach-card.suggestion { border-color: rgba(108,99,255,0.4); background: rgba(108,99,255,0.05); }
+  .coach-card.positive { border-color: rgba(67,233,123,0.4); background: rgba(67,233,123,0.05); }
+  .coach-card.warning { border-color: rgba(247,151,30,0.4); background: rgba(247,151,30,0.05); }
+  .card-header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+  .card-icon { font-size: 16px; }
+  .card-type { font-size: 10px; font-family: 'DM Mono', monospace; text-transform: uppercase; letter-spacing: 1px; font-weight: 500; }
+  .urgent .card-type{color:var(--accent2)} .suggestion .card-type{color:var(--accent)} .positive .card-type{color:var(--accent3)} .warning .card-type{color:var(--warn)}
+  .card-content { font-size: 14px; line-height: 1.6; color: var(--text); }
+  .say-this { margin-top: 10px; padding: 10px 12px; background: rgba(255,255,255,0.04); border-left: 3px solid currentColor; border-radius: 0 8px 8px 0; font-size: 13px; font-style: italic; color: var(--text-bright); line-height: 1.5; }
+  .urgent .say-this{border-color:var(--accent2)} .suggestion .say-this{border-color:var(--accent)} .positive .say-this{border-color:var(--accent3)} .warning .say-this{border-color:var(--warn)}
+  .thinking-indicator { display: flex; align-items: center; gap: 8px; padding: 14px 16px; background: var(--surface); border: 1px solid rgba(108,99,255,0.3); border-radius: 12px; font-size: 12px; font-family: 'DM Mono', monospace; color: var(--accent); }
+  .thinking-dots span { display: inline-block; animation: blink 1.2s ease-in-out infinite; }
+  .thinking-dots span:nth-child(2){animation-delay:0.2s} .thinking-dots span:nth-child(3){animation-delay:0.4s}
+  @keyframes blink { 0%,100%{opacity:0.2} 50%{opacity:1} }
+  .summary-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 16px; }
+  .summary-panel h3 { font-size: 12px; font-family: 'DM Mono', monospace; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
+  .action-items { display: flex; flex-direction: column; gap: 6px; }
+  .action-item { display: flex; align-items: flex-start; gap: 8px; font-size: 13px; line-height: 1.5; padding: 8px 10px; background: rgba(255,255,255,0.03); border-radius: 8px; }
+  .action-item::before { content: '→'; color: var(--accent); font-family: 'DM Mono', monospace; flex-shrink: 0; margin-top: 1px; }
+  .error-msg { padding: 12px 16px; background: rgba(255,101,132,0.1); border: 1px solid rgba(255,101,132,0.3); border-radius: 12px; font-size: 13px; color: var(--accent2); font-family: 'DM Mono', monospace; }
+  ::-webkit-scrollbar{width:4px} ::-webkit-scrollbar-track{background:transparent} ::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="header">
+    <div>
+      <h1>PO Coach</h1>
+      <p>Real-time meeting assistant</p>
+    </div>
+    <div class="status-pill" id="statusPill">
+      <div class="dot" id="statusDot"></div>
+      <span id="statusText">Ready</span>
+    </div>
+  </div>
+
+  <!-- Step 1: Permission -->
+  <div class="perm-screen" id="permScreen">
+    <div style="font-size:52px">🎙️</div>
+    <h2>Microphone Access</h2>
+    <p class="sub">This app listens to your meeting and tells you exactly what to say as a Product Owner.</p>
+    <div class="steps">
+      <div class="step"><div class="step-n">1</div><div>Tap the button below</div></div>
+      <div class="step"><div class="step-n">2</div><div>When Safari asks for microphone access — tap <strong>Allow</strong></div></div>
+      <div class="step"><div class="step-n">3</div><div>Place your phone on the table during your meeting</div></div>
+    </div>
+    <button class="big-btn" id="permBtn" onclick="askPermission()">🎙️ Enable Microphone</button>
+    <p class="hint">Must be opened in Safari on iPhone. If you already tapped Don't Allow, go to Settings → Safari → Microphone → Allow, then refresh.</p>
+  </div>
+
+  <!-- Step 2: Main App -->
+  <div class="main-ui" id="mainUI">
+    <div class="mic-section">
+      <button class="mic-btn" id="micBtn" onclick="toggleListening()">🎙️</button>
+      <span class="mic-label" id="micLabel">Tap to start listening</span>
+    </div>
+    <div class="transcript-box">
+      <h3>Live Transcript</h3>
+      <div class="transcript-text empty" id="transcriptEl">Waiting for speech...</div>
+    </div>
+    <div class="controls">
+      <button class="ctrl-btn" onclick="getSummary()">📋 Get Summary</button>
+      <button class="ctrl-btn" onclick="clearAll()">🗑️ Clear</button>
+    </div>
+    <div class="coach-section" id="coachSection">
+      <div class="coach-card suggestion">
+        <div class="card-header"><span class="card-icon">👋</span><span class="card-type">Getting Started</span></div>
+        <div class="card-content">
+          Tap the mic and place your phone on the table. I'll coach you in real time.
+          <div class="say-this">"Thanks for joining. Mario escalated the status mismatch issue — I want us to leave with a clear plan."</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+<script>
+const SYSTEM_PROMPT = `You are a real-time Product Owner (PO) meeting coach. The user is Pantha Shah, a first-time PO at Walgreens on the Digital Refill/SRMS project. Analyze what was just said and give immediate coaching.
+
+Context: Status mismatches between Promote and IC+ needing manual fixes. Mario Cano escalated. Team: Lakshmi Vijai, Tarun Kumar, Smita Wandhare, Vinoth. Root cause: race conditions in IC+. Need production logs from Sayantan Bera (TCS).
+
+Respond ONLY in this JSON format, no extra text:
+{"type":"urgent|suggestion|positive|warning","icon":"emoji","label":"short label","observation":"one sentence what just happened","say_this":"exact natural words Pantha should say now, under 35 words"}
+
+Rules: say_this sounds like a real human. Never commit to timelines. Push to clarify vague statements. Capture action items. Ask for plain English when jargon is used. Confirm decisions out loud.`;
+
+let isListening=false, recognition=null, fullTranscript='', buffer='', coachTimer=null, thinking=false;
+
+async function askPermission() {
+  const btn = document.getElementById('permBtn');
+  btn.textContent = 'Requesting...';
+  btn.disabled = true;
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({audio:true, video:false});
+    stream.getTracks().forEach(t => t.stop());
+    document.getElementById('permScreen').style.display = 'none';
+    document.getElementById('mainUI').classList.add('show');
+  } catch(e) {
+    btn.textContent = '🎙️ Enable Microphone';
+    btn.disabled = false;
+    if(e.name === 'NotAllowedError') {
+      document.getElementById('permScreen').innerHTML = `
+        <div style="font-size:48px">🚫</div>
+        <h2 style="color:var(--accent2)">Access Denied</h2>
+        <p class="sub">You tapped Don't Allow. Here's how to fix it:</p>
+        <div class="steps">
+          <div class="step"><div class="step-n">1</div><div>Open iPhone <strong>Settings</strong></div></div>
+          <div class="step"><div class="step-n">2</div><div>Scroll to <strong>Safari</strong> → tap it</div></div>
+          <div class="step"><div class="step-n">3</div><div>Tap <strong>Microphone</strong> → set to <strong>Allow</strong></div></div>
+          <div class="step"><div class="step-n">4</div><div>Come back here and refresh the page</div></div>
+        </div>
+        <button class="big-btn" onclick="location.reload()">🔄 Refresh & Try Again</button>`;
+    } else {
+      alert('Error: ' + e.message + '\n\nMake sure you are using Safari on iPhone.');
+    }
+  }
+}
+
+function initRecognition() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!SR){ showError('Use Safari on iPhone for speech recognition.'); return null; }
+  const r = new SR();
+  r.continuous = true;
+  r.interimResults = true;
+  r.lang = 'en-US';
+  r.onresult = e => {
+    let final='', interim='';
+    for(let i=e.resultIndex;i<e.results.length;i++){
+      const t = e.results[i][0].transcript;
+      if(e.results[i].isFinal) final+=t; else interim+=t;
+    }
+    if(final){ fullTranscript+=' '+final; buffer+=' '+final; updateT(final.trim()); clearTimeout(coachTimer); coachTimer=setTimeout(()=>{ if(buffer.trim().length>15){analyze(buffer.trim());buffer='';} },4000); }
+    else if(interim) updateT(interim.trim());
+  };
+  r.onerror = e => { if(e.error==='not-allowed'){ showError('Microphone blocked. Go to Settings → Safari → Microphone → Allow'); stopListening(); } };
+  r.onend = () => { if(isListening) setTimeout(()=>{ try{r.start();}catch(e){} },300); };
+  return r;
+}
+
+function updateT(t) {
+  const el = document.getElementById('transcriptEl');
+  el.classList.remove('empty');
+  if(t) el.textContent = t;
+}
+
+function toggleListening(){ isListening ? stopListening() : startListening(); }
+
+function startListening(){
+  recognition = initRecognition();
+  if(!recognition) return;
+  try{
+    recognition.start(); isListening=true;
+    document.getElementById('micBtn').classList.add('active');
+    document.getElementById('micBtn').textContent='⏹️';
+    document.getElementById('micLabel').textContent='Listening... tap to stop';
+    setStatus('listening','Listening');
+  }catch(e){ showError('Could not start mic. Try again.'); }
+}
+
+function stopListening(){
+  isListening=false;
+  if(recognition){recognition.stop();recognition=null;}
+  clearTimeout(coachTimer);
+  document.getElementById('micBtn').classList.remove('active');
+  document.getElementById('micBtn').textContent='🎙️';
+  document.getElementById('micLabel').textContent='Tap to start listening';
+  setStatus('idle','Stopped');
+}
+
+function setStatus(type,text){
+  const p=document.getElementById('statusPill'), d=document.getElementById('statusDot');
+  p.className='status-pill '+type;
+  d.className='dot'+(type!=='idle'?' pulse':'');
+  document.getElementById('statusText').textContent=text;
+}
+
+async function analyze(text){
+  if(thinking) return;
+  thinking=true; setStatus('thinking','Thinking...'); showThinking();
+  try{
+    const res = await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:1000, system:SYSTEM_PROMPT,
+        messages:[{role:'user',content:`Just said:\n"${text}"\n\nContext:\n"${fullTranscript.slice(-500)}"`}]})
+    });
+    const data = await res.json();
+    const raw = data.content?.find(b=>b.type==='text')?.text||'';
+    let c;
+    try{ c=JSON.parse(raw.replace(/```json|```/g,'').trim()); }
+    catch(e){ c={type:'suggestion',icon:'💡',label:'Tip',observation:'Keep the conversation on track.',say_this:'Can we make sure we capture who owns this before moving on?'}; }
+    removeThinking(); addCard(c); setStatus('listening','Listening');
+  }catch(e){ removeThinking(); showError('Connection issue. Still listening...'); setStatus('listening','Listening'); }
+  thinking=false;
+}
+
+function showThinking(){
+  const s=document.getElementById('coachSection');
+  const el=document.createElement('div'); el.className='thinking-indicator'; el.id='thinkEl';
+  el.innerHTML=`<span>🧠</span> Analyzing <span class="thinking-dots"><span>.</span><span>.</span><span>.</span></span>`;
+  s.insertBefore(el,s.firstChild);
+}
+function removeThinking(){ const el=document.getElementById('thinkEl'); if(el)el.remove(); }
+
+function addCard(c){
+  const s=document.getElementById('coachSection');
+  const card=document.createElement('div'); card.className=`coach-card ${c.type}`;
+  card.innerHTML=`<div class="card-header"><span class="card-icon">${c.icon}</span><span class="card-type">${c.label}</span></div><div class="card-content">${c.observation}<div class="say-this">"${c.say_this}"</div></div>`;
+  s.insertBefore(card,s.firstChild);
+  const cards=s.querySelectorAll('.coach-card');
+  if(cards.length>5) cards[cards.length-1].remove();
+}
+
+async function getSummary(){
+  if(!fullTranscript.trim()){ showError('Nothing recorded yet.'); return; }
+  stopListening(); setStatus('thinking','Summarizing...'); showThinking();
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,
+        system:'Extract action items for Pantha, a first-time Product Owner at Walgreens. Return ONLY a JSON array of strings. Max 6. Each starts with a verb. Be specific to her PO role.',
+        messages:[{role:'user',content:fullTranscript}]})
+    });
+    const data=await res.json();
+    const raw=data.content?.find(b=>b.type==='text')?.text||'[]';
+    let items; try{items=JSON.parse(raw.replace(/```json|```/g,'').trim());}catch(e){items=['Follow up on action items from this meeting'];}
+    removeThinking(); showSummary(items); setStatus('idle','Done');
+  }catch(e){ removeThinking(); showError('Could not generate summary.'); setStatus('idle','Error'); }
+}
+
+function showSummary(items){
+  const s=document.getElementById('coachSection');
+  const p=document.createElement('div'); p.className='summary-panel';
+  p.innerHTML=`<h3>📋 Your Action Items</h3><div class="action-items">${items.map(i=>`<div class="action-item">${i}</div>`).join('')}</div>`;
+  s.insertBefore(p,s.firstChild);
+}
+
+function showError(msg){
+  const s=document.getElementById('coachSection');
+  const el=document.createElement('div'); el.className='error-msg'; el.textContent=msg;
+  s.insertBefore(el,s.firstChild); setTimeout(()=>el.remove(),6000);
+}
+
+function clearAll(){
+  stopListening(); fullTranscript=''; buffer='';
+  document.getElementById('transcriptEl').textContent='Waiting for speech...';
+  document.getElementById('transcriptEl').classList.add('empty');
+  document.getElementById('coachSection').innerHTML=`
+    <div class="coach-card suggestion">
+      <div class="card-header"><span class="card-icon">👋</span><span class="card-type">Getting Started</span></div>
+      <div class="card-content">Tap the mic and place your phone on the table. I'll coach you in real time.
+        <div class="say-this">"Thanks for joining. Mario escalated the status mismatch issue — I want us to leave with a clear plan."</div>
+      </div>
+    </div>`;
+  setStatus('idle','Ready');
+}
+</script>
+</body>
+</html>

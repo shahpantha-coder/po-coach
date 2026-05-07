@@ -30,16 +30,25 @@
   .dot.pulse { animation: pulse 1.2s ease-in-out infinite; }
   @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(0.8)} }
 
-  /* Permission screen */
-  .perm-screen { background: var(--surface); border: 1px solid rgba(108,99,255,0.4); border-radius: 20px; padding: 28px 20px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 16px; }
-  .perm-screen h2 { font-size: 22px; font-weight: 800; color: var(--text-bright); }
-  .perm-screen .sub { font-size: 14px; color: var(--text-dim); line-height: 1.6; }
-  .steps { text-align: left; width: 100%; display: flex; flex-direction: column; gap: 8px; }
-  .step { display: flex; align-items: flex-start; gap: 12px; padding: 10px 12px; background: rgba(255,255,255,0.03); border-radius: 10px; font-size: 13px; line-height: 1.5; }
-  .step-n { width: 24px; height: 24px; border-radius: 50%; background: var(--accent); color: white; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  /* API Key Setup Screen */
+  .setup-screen { background: var(--surface); border: 1px solid rgba(108,99,255,0.4); border-radius: 20px; padding: 24px 20px; display: flex; flex-direction: column; gap: 16px; }
+  .setup-screen h2 { font-size: 20px; font-weight: 800; color: var(--text-bright); text-align: center; }
+  .setup-screen p { font-size: 13px; color: var(--text-dim); line-height: 1.6; text-align: center; }
+  .key-input { width: 100%; padding: 14px; border-radius: 12px; border: 1px solid var(--border); background: var(--surface2); color: var(--text-bright); font-family: 'DM Mono', monospace; font-size: 13px; outline: none; }
+  .key-input:focus { border-color: var(--accent); }
+  .key-input::placeholder { color: var(--text-dim); }
   .big-btn { width: 100%; padding: 16px; border-radius: 14px; border: none; font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; cursor: pointer; transition: all 0.2s; background: linear-gradient(135deg, var(--accent), #9c5fff); color: white; box-shadow: 0 4px 20px rgba(108,99,255,0.4); }
   .big-btn:active { transform: scale(0.98); }
-  .hint { font-size: 11px; color: var(--text-dim); line-height: 1.5; }
+  .hint { font-size: 11px; color: var(--text-dim); line-height: 1.6; text-align: center; }
+
+  /* Permission screen */
+  .perm-screen { background: var(--surface); border: 1px solid rgba(67,233,123,0.4); border-radius: 20px; padding: 24px 20px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 16px; }
+  .perm-screen h2 { font-size: 20px; font-weight: 800; color: var(--text-bright); }
+  .perm-screen p { font-size: 13px; color: var(--text-dim); line-height: 1.6; }
+  .steps { text-align: left; width: 100%; display: flex; flex-direction: column; gap: 8px; }
+  .step { display: flex; align-items: flex-start; gap: 12px; padding: 10px 12px; background: rgba(255,255,255,0.03); border-radius: 10px; font-size: 13px; line-height: 1.5; }
+  .step-n { width: 24px; height: 24px; border-radius: 50%; background: var(--accent3); color: #000; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .big-btn.green { background: linear-gradient(135deg, var(--accent3), #00c853); color: #000; box-shadow: 0 4px 20px rgba(67,233,123,0.4); }
 
   /* Main UI */
   .main-ui { display: none; flex-direction: column; gap: 12px; }
@@ -54,7 +63,7 @@
   .transcript-text { font-size: 13px; line-height: 1.6; color: var(--text); font-family: 'DM Mono', monospace; }
   .transcript-text.empty { color: var(--text-dim); font-style: italic; }
   .controls { display: flex; gap: 8px; }
-  .ctrl-btn { flex: 1; padding: 12px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); color: var(--text-dim); font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+  .ctrl-btn { flex: 1; padding: 12px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); color: var(--text-dim); font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 600; cursor: pointer; }
   .ctrl-btn:active { background: var(--surface2); color: var(--text); }
   .coach-section { display: flex; flex-direction: column; gap: 10px; }
   .coach-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 16px; animation: slideIn 0.4s ease-out; }
@@ -97,21 +106,26 @@
     </div>
   </div>
 
-  <!-- Step 1: Permission -->
-  <div class="perm-screen" id="permScreen">
-    <div style="font-size:52px">🎙️</div>
-    <h2>Microphone Access</h2>
-    <p class="sub">This app listens to your meeting and tells you exactly what to say as a Product Owner.</p>
-    <div class="steps">
-      <div class="step"><div class="step-n">1</div><div>Tap the button below</div></div>
-      <div class="step"><div class="step-n">2</div><div>When Safari asks for microphone access — tap <strong>Allow</strong></div></div>
-      <div class="step"><div class="step-n">3</div><div>Place your phone on the table during your meeting</div></div>
-    </div>
-    <button class="big-btn" id="permBtn" onclick="askPermission()">🎙️ Enable Microphone</button>
-    <p class="hint">Must be opened in Safari on iPhone. If you already tapped Don't Allow, go to Settings → Safari → Microphone → Allow, then refresh.</p>
+  <!-- Step 1: API Key -->
+  <div class="setup-screen" id="setupScreen">
+    <div style="font-size:48px;text-align:center">🔑</div>
+    <h2>Enter Your API Key</h2>
+    <p>Paste your Google Gemini API key below. It stays on your device only and is never shared with anyone.</p>
+    <input type="password" class="key-input" id="apiKeyInput" placeholder="Paste your Gemini API key here..." />
+    <button class="big-btn" onclick="saveKey()">Save & Continue →</button>
+    <p class="hint">Get a free key at aistudio.google.com → Get API Key. No credit card needed.</p>
   </div>
 
-  <!-- Step 2: Main App -->
+  <!-- Step 2: Microphone Permission -->
+  <div class="perm-screen" id="permScreen" style="display:none">
+    <div style="font-size:52px">🎙️</div>
+    <h2>Allow Microphone</h2>
+    <p>Tap below and allow microphone access when Safari asks.</p>
+    <button class="big-btn green" onclick="askPermission()">🎙️ Enable Microphone</button>
+    <p class="hint">If you already denied it: Settings → Safari → Microphone → Allow → Refresh</p>
+  </div>
+
+  <!-- Step 3: Main App -->
   <div class="main-ui" id="mainUI">
     <div class="mic-section">
       <button class="mic-btn" id="micBtn" onclick="toggleListening()">🎙️</button>
@@ -140,48 +154,55 @@
 <script>
 const SYSTEM_PROMPT = `You are a real-time Product Owner (PO) meeting coach. The user is Pantha Shah, a first-time PO at Walgreens on the Digital Refill/SRMS project. Analyze what was just said and give immediate coaching.
 
-Context: Status mismatches between Promote and IC+ needing manual fixes. Mario Cano escalated. Team: Lakshmi Vijai, Tarun Kumar, Smita Wandhare, Vinoth. Root cause: race conditions in IC+. Need production logs from Sayantan Bera (TCS).
+Context: Status mismatches between Promote and IC+ needing manual fixes. Mario Cano escalated. Team: Lakshmi Vijai, Tarun Kumar, Smita Wandhare, Vinoth. Root cause: race conditions in IC+. Need production logs from Sayantan Bera (TCS). Features in ADO: 1898117, 1898126, 1898128.
 
 Respond ONLY in this JSON format, no extra text:
 {"type":"urgent|suggestion|positive|warning","icon":"emoji","label":"short label","observation":"one sentence what just happened","say_this":"exact natural words Pantha should say now, under 35 words"}
 
-Rules: say_this sounds like a real human. Never commit to timelines. Push to clarify vague statements. Capture action items. Ask for plain English when jargon is used. Confirm decisions out loud.`;
+Rules: say_this sounds like a real human. Never commit to timelines without team input. Push to clarify vague statements. Remind to capture action items. Ask for plain English when jargon is used. Confirm decisions out loud.`;
 
 let isListening=false, recognition=null, fullTranscript='', buffer='', coachTimer=null, thinking=false;
+let GEMINI_KEY = localStorage.getItem('gemini_key') || '';
+
+// If key already saved skip setup screen
+window.onload = () => {
+  if(GEMINI_KEY) {
+    document.getElementById('setupScreen').style.display = 'none';
+    document.getElementById('permScreen').style.display = 'flex';
+  }
+};
+
+function saveKey() {
+  const key = document.getElementById('apiKeyInput').value.trim();
+  if(!key){ alert('Please paste your API key first.'); return; }
+  GEMINI_KEY = key;
+  localStorage.setItem('gemini_key', key);
+  document.getElementById('setupScreen').style.display = 'none';
+  document.getElementById('permScreen').style.display = 'flex';
+}
 
 async function askPermission() {
-  const btn = document.getElementById('permBtn');
-  btn.textContent = 'Requesting...';
-  btn.disabled = true;
   try {
     const stream = await navigator.mediaDevices.getUserMedia({audio:true, video:false});
     stream.getTracks().forEach(t => t.stop());
     document.getElementById('permScreen').style.display = 'none';
     document.getElementById('mainUI').classList.add('show');
   } catch(e) {
-    btn.textContent = '🎙️ Enable Microphone';
-    btn.disabled = false;
     if(e.name === 'NotAllowedError') {
       document.getElementById('permScreen').innerHTML = `
         <div style="font-size:48px">🚫</div>
         <h2 style="color:var(--accent2)">Access Denied</h2>
-        <p class="sub">You tapped Don't Allow. Here's how to fix it:</p>
-        <div class="steps">
-          <div class="step"><div class="step-n">1</div><div>Open iPhone <strong>Settings</strong></div></div>
-          <div class="step"><div class="step-n">2</div><div>Scroll to <strong>Safari</strong> → tap it</div></div>
-          <div class="step"><div class="step-n">3</div><div>Tap <strong>Microphone</strong> → set to <strong>Allow</strong></div></div>
-          <div class="step"><div class="step-n">4</div><div>Come back here and refresh the page</div></div>
-        </div>
+        <p>Go to Settings → Safari → Microphone → Allow, then refresh.</p>
         <button class="big-btn" onclick="location.reload()">🔄 Refresh & Try Again</button>`;
     } else {
-      alert('Error: ' + e.message + '\n\nMake sure you are using Safari on iPhone.');
+      alert('Error: ' + e.message);
     }
   }
 }
 
 function initRecognition() {
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if(!SR){ showError('Use Safari on iPhone for speech recognition.'); return null; }
+  if(!SR){ showError('Use Safari on iPhone.'); return null; }
   const r = new SR();
   r.continuous = true;
   r.interimResults = true;
@@ -192,10 +213,14 @@ function initRecognition() {
       const t = e.results[i][0].transcript;
       if(e.results[i].isFinal) final+=t; else interim+=t;
     }
-    if(final){ fullTranscript+=' '+final; buffer+=' '+final; updateT(final.trim()); clearTimeout(coachTimer); coachTimer=setTimeout(()=>{ if(buffer.trim().length>15){analyze(buffer.trim());buffer='';} },4000); }
-    else if(interim) updateT(interim.trim());
+    if(final){
+      fullTranscript+=' '+final; buffer+=' '+final;
+      updateT(final.trim());
+      clearTimeout(coachTimer);
+      coachTimer=setTimeout(()=>{ if(buffer.trim().length>15){analyze(buffer.trim());buffer='';} },4000);
+    } else if(interim) updateT(interim.trim());
   };
-  r.onerror = e => { if(e.error==='not-allowed'){ showError('Microphone blocked. Go to Settings → Safari → Microphone → Allow'); stopListening(); } };
+  r.onerror = e => { if(e.error==='not-allowed'){ showError('Microphone blocked. Settings → Safari → Microphone → Allow'); stopListening(); } };
   r.onend = () => { if(isListening) setTimeout(()=>{ try{r.start();}catch(e){} },300); };
   return r;
 }
@@ -241,18 +266,26 @@ async function analyze(text){
   if(thinking) return;
   thinking=true; setStatus('thinking','Thinking...'); showThinking();
   try{
-    const res = await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:1000, system:SYSTEM_PROMPT,
-        messages:[{role:'user',content:`Just said:\n"${text}"\n\nContext:\n"${fullTranscript.slice(-500)}"`}]})
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        contents:[{parts:[{text: SYSTEM_PROMPT + '\n\nJust said in meeting:\n"' + text + '"\n\nFull context so far:\n"' + fullTranscript.slice(-500) + '"'}]}],
+        generationConfig:{temperature:0.7,maxOutputTokens:500}
+      })
     });
     const data = await res.json();
-    const raw = data.content?.find(b=>b.type==='text')?.text||'';
+    const raw = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
     let c;
     try{ c=JSON.parse(raw.replace(/```json|```/g,'').trim()); }
-    catch(e){ c={type:'suggestion',icon:'💡',label:'Tip',observation:'Keep the conversation on track.',say_this:'Can we make sure we capture who owns this before moving on?'}; }
+    catch(e){ c={type:'suggestion',icon:'💡',label:'Tip',observation:'Keep the conversation focused.',say_this:'Can we make sure we capture who owns this before moving on?'}; }
     removeThinking(); addCard(c); setStatus('listening','Listening');
-  }catch(e){ removeThinking(); showError('Connection issue. Still listening...'); setStatus('listening','Listening'); }
+  }catch(e){
+    removeThinking();
+    if(e.message && e.message.includes('403')){ showError('Invalid API key. Tap Clear and re-enter your key.'); }
+    else { showError('Connection issue. Still listening...'); }
+    setStatus('listening','Listening');
+  }
   thinking=false;
 }
 
@@ -262,7 +295,7 @@ function showThinking(){
   el.innerHTML=`<span>🧠</span> Analyzing <span class="thinking-dots"><span>.</span><span>.</span><span>.</span></span>`;
   s.insertBefore(el,s.firstChild);
 }
-function removeThinking(){ const el=document.getElementById('thinkEl'); if(el)el.remove(); }
+function removeThinking(){ const el=document.getElementById('thinkingEl')||document.getElementById('thinkEl'); if(el)el.remove(); }
 
 function addCard(c){
   const s=document.getElementById('coachSection');
@@ -277,14 +310,16 @@ async function getSummary(){
   if(!fullTranscript.trim()){ showError('Nothing recorded yet.'); return; }
   stopListening(); setStatus('thinking','Summarizing...'); showThinking();
   try{
-    const res=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,
-        system:'Extract action items for Pantha, a first-time Product Owner at Walgreens. Return ONLY a JSON array of strings. Max 6. Each starts with a verb. Be specific to her PO role.',
-        messages:[{role:'user',content:fullTranscript}]})
+    const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        contents:[{parts:[{text:'Extract action items for Pantha Shah, a first-time Product Owner at Walgreens on the Digital Refill project. Return ONLY a JSON array of strings. Max 6 items. Each starts with a verb. Be specific to her PO role.\n\nTranscript:\n'+fullTranscript}]}],
+        generationConfig:{temperature:0.3,maxOutputTokens:500}
+      })
     });
     const data=await res.json();
-    const raw=data.content?.find(b=>b.type==='text')?.text||'[]';
+    const raw=data.candidates?.[0]?.content?.parts?.[0]?.text||'[]';
     let items; try{items=JSON.parse(raw.replace(/```json|```/g,'').trim());}catch(e){items=['Follow up on action items from this meeting'];}
     removeThinking(); showSummary(items); setStatus('idle','Done');
   }catch(e){ removeThinking(); showError('Could not generate summary.'); setStatus('idle','Error'); }
@@ -305,6 +340,7 @@ function showError(msg){
 
 function clearAll(){
   stopListening(); fullTranscript=''; buffer='';
+  localStorage.removeItem('gemini_key'); GEMINI_KEY='';
   document.getElementById('transcriptEl').textContent='Waiting for speech...';
   document.getElementById('transcriptEl').classList.add('empty');
   document.getElementById('coachSection').innerHTML=`
@@ -315,6 +351,9 @@ function clearAll(){
       </div>
     </div>`;
   setStatus('idle','Ready');
+  document.getElementById('mainUI').classList.remove('show');
+  document.getElementById('permScreen').style.display='none';
+  document.getElementById('setupScreen').style.display='flex';
 }
 </script>
 </body>

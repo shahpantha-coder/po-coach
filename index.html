@@ -7,125 +7,101 @@
 <style>
   @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&display=swap');
   :root {
-    --bg: #0a0a0f; --surface: #12121a; --surface2: #1a1a26; --border: #2a2a3d;
-    --accent: #6c63ff; --accent2: #ff6584; --accent3: #43e97b; --warn: #f7971e;
-    --text: #e8e8f0; --text-dim: #8888aa; --text-bright: #ffffff;
+    --bg:#0a0a0f;--surface:#12121a;--surface2:#1a1a26;--border:#2a2a3d;
+    --accent:#6c63ff;--accent2:#ff6584;--accent3:#43e97b;--warn:#f7971e;
+    --text:#e8e8f0;--text-dim:#8888aa;--text-bright:#ffffff;
   }
-  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-  body { background: var(--bg); color: var(--text); font-family: 'Syne', sans-serif; min-height: 100vh; }
-  body::before {
-    content: ''; position: fixed; inset: 0;
-    background: radial-gradient(ellipse at 20% 20%, rgba(108,99,255,0.08) 0%, transparent 50%),
-                radial-gradient(ellipse at 80% 80%, rgba(255,101,132,0.06) 0%, transparent 50%);
-    pointer-events: none; z-index: 0;
-  }
-  .app { position: relative; z-index: 1; max-width: 480px; margin: 0 auto; padding: 16px; min-height: 100vh; display: flex; flex-direction: column; gap: 12px; padding-bottom: 40px; }
-  .header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; background: var(--surface); border: 1px solid var(--border); border-radius: 16px; }
-  .header h1 { font-size: 18px; font-weight: 800; color: var(--text-bright); letter-spacing: -0.5px; }
-  .header p { font-size: 11px; color: var(--text-dim); font-family: 'DM Mono', monospace; margin-top: 2px; }
-  .status-pill { display: flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 20px; font-size: 11px; font-family: 'DM Mono', monospace; border: 1px solid var(--border); background: rgba(136,136,170,0.1); color: var(--text-dim); transition: all 0.3s; }
-  .status-pill.listening { background: rgba(67,233,123,0.1); color: var(--accent3); border-color: rgba(67,233,123,0.3); }
-  .status-pill.thinking { background: rgba(108,99,255,0.1); color: var(--accent); border-color: rgba(108,99,255,0.3); }
-  .dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
-  .dot.pulse { animation: pulse 1.2s ease-in-out infinite; }
-  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(0.8)} }
-
-  /* API Key Setup Screen */
-  .setup-screen { background: var(--surface); border: 1px solid rgba(108,99,255,0.4); border-radius: 20px; padding: 24px 20px; display: flex; flex-direction: column; gap: 16px; }
-  .setup-screen h2 { font-size: 20px; font-weight: 800; color: var(--text-bright); text-align: center; }
-  .setup-screen p { font-size: 13px; color: var(--text-dim); line-height: 1.6; text-align: center; }
-  .key-input { width: 100%; padding: 14px; border-radius: 12px; border: 1px solid var(--border); background: var(--surface2); color: var(--text-bright); font-family: 'DM Mono', monospace; font-size: 13px; outline: none; }
-  .key-input:focus { border-color: var(--accent); }
-  .key-input::placeholder { color: var(--text-dim); }
-  .big-btn { width: 100%; padding: 16px; border-radius: 14px; border: none; font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; cursor: pointer; transition: all 0.2s; background: linear-gradient(135deg, var(--accent), #9c5fff); color: white; box-shadow: 0 4px 20px rgba(108,99,255,0.4); }
-  .big-btn:active { transform: scale(0.98); }
-  .hint { font-size: 11px; color: var(--text-dim); line-height: 1.6; text-align: center; }
-
-  /* Permission screen */
-  .perm-screen { background: var(--surface); border: 1px solid rgba(67,233,123,0.4); border-radius: 20px; padding: 24px 20px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 16px; }
-  .perm-screen h2 { font-size: 20px; font-weight: 800; color: var(--text-bright); }
-  .perm-screen p { font-size: 13px; color: var(--text-dim); line-height: 1.6; }
-  .steps { text-align: left; width: 100%; display: flex; flex-direction: column; gap: 8px; }
-  .step { display: flex; align-items: flex-start; gap: 12px; padding: 10px 12px; background: rgba(255,255,255,0.03); border-radius: 10px; font-size: 13px; line-height: 1.5; }
-  .step-n { width: 24px; height: 24px; border-radius: 50%; background: var(--accent3); color: #000; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-  .big-btn.green { background: linear-gradient(135deg, var(--accent3), #00c853); color: #000; box-shadow: 0 4px 20px rgba(67,233,123,0.4); }
-
-  /* Main UI */
-  .main-ui { display: none; flex-direction: column; gap: 12px; }
-  .main-ui.show { display: flex; }
-  .mic-section { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 24px 20px; background: var(--surface); border: 1px solid var(--border); border-radius: 20px; }
-  .mic-btn { width: 80px; height: 80px; border-radius: 50%; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 32px; transition: all 0.2s; background: linear-gradient(135deg, var(--accent), #9c5fff); box-shadow: 0 4px 24px rgba(108,99,255,0.4); }
-  .mic-btn.active { background: linear-gradient(135deg, var(--accent2), #ff4060); animation: micPulse 1.5s ease-in-out infinite; }
-  @keyframes micPulse { 0%,100%{box-shadow:0 4px 32px rgba(255,101,132,0.5)} 50%{box-shadow:0 4px 48px rgba(255,101,132,0.8),0 0 0 12px rgba(255,101,132,0.1)} }
-  .mic-label { font-size: 12px; color: var(--text-dim); font-family: 'DM Mono', monospace; }
-  .transcript-box { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 16px; min-height: 80px; max-height: 120px; overflow-y: auto; }
-  .transcript-box h3 { font-size: 10px; font-family: 'DM Mono', monospace; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
-  .transcript-text { font-size: 13px; line-height: 1.6; color: var(--text); font-family: 'DM Mono', monospace; }
-  .transcript-text.empty { color: var(--text-dim); font-style: italic; }
-  .controls { display: flex; gap: 8px; }
-  .ctrl-btn { flex: 1; padding: 12px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); color: var(--text-dim); font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 600; cursor: pointer; }
-  .ctrl-btn:active { background: var(--surface2); color: var(--text); }
-  .coach-section { display: flex; flex-direction: column; gap: 10px; }
-  .coach-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 16px; animation: slideIn 0.4s ease-out; }
-  @keyframes slideIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
-  .coach-card.urgent { border-color: rgba(255,101,132,0.4); background: rgba(255,101,132,0.05); }
-  .coach-card.suggestion { border-color: rgba(108,99,255,0.4); background: rgba(108,99,255,0.05); }
-  .coach-card.positive { border-color: rgba(67,233,123,0.4); background: rgba(67,233,123,0.05); }
-  .coach-card.warning { border-color: rgba(247,151,30,0.4); background: rgba(247,151,30,0.05); }
-  .card-header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
-  .card-icon { font-size: 16px; }
-  .card-type { font-size: 10px; font-family: 'DM Mono', monospace; text-transform: uppercase; letter-spacing: 1px; font-weight: 500; }
-  .urgent .card-type{color:var(--accent2)} .suggestion .card-type{color:var(--accent)} .positive .card-type{color:var(--accent3)} .warning .card-type{color:var(--warn)}
-  .card-content { font-size: 14px; line-height: 1.6; color: var(--text); }
-  .say-this { margin-top: 10px; padding: 10px 12px; background: rgba(255,255,255,0.04); border-left: 3px solid currentColor; border-radius: 0 8px 8px 0; font-size: 13px; font-style: italic; color: var(--text-bright); line-height: 1.5; }
-  .urgent .say-this{border-color:var(--accent2)} .suggestion .say-this{border-color:var(--accent)} .positive .say-this{border-color:var(--accent3)} .warning .say-this{border-color:var(--warn)}
-  .thinking-indicator { display: flex; align-items: center; gap: 8px; padding: 14px 16px; background: var(--surface); border: 1px solid rgba(108,99,255,0.3); border-radius: 12px; font-size: 12px; font-family: 'DM Mono', monospace; color: var(--accent); }
-  .thinking-dots span { display: inline-block; animation: blink 1.2s ease-in-out infinite; }
-  .thinking-dots span:nth-child(2){animation-delay:0.2s} .thinking-dots span:nth-child(3){animation-delay:0.4s}
-  @keyframes blink { 0%,100%{opacity:0.2} 50%{opacity:1} }
-  .summary-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 16px; }
-  .summary-panel h3 { font-size: 12px; font-family: 'DM Mono', monospace; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
-  .action-items { display: flex; flex-direction: column; gap: 6px; }
-  .action-item { display: flex; align-items: flex-start; gap: 8px; font-size: 13px; line-height: 1.5; padding: 8px 10px; background: rgba(255,255,255,0.03); border-radius: 8px; }
-  .action-item::before { content: '→'; color: var(--accent); font-family: 'DM Mono', monospace; flex-shrink: 0; margin-top: 1px; }
-  .error-msg { padding: 12px 16px; background: rgba(255,101,132,0.1); border: 1px solid rgba(255,101,132,0.3); border-radius: 12px; font-size: 13px; color: var(--accent2); font-family: 'DM Mono', monospace; }
-  ::-webkit-scrollbar{width:4px} ::-webkit-scrollbar-track{background:transparent} ::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  body{background:var(--bg);color:var(--text);font-family:'Syne',sans-serif;min-height:100vh}
+  body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 20% 20%,rgba(108,99,255,.08) 0%,transparent 50%),radial-gradient(ellipse at 80% 80%,rgba(255,101,132,.06) 0%,transparent 50%);pointer-events:none;z-index:0}
+  .app{position:relative;z-index:1;max-width:480px;margin:0 auto;padding:16px;min-height:100vh;display:flex;flex-direction:column;gap:12px;padding-bottom:40px}
+  .header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;background:var(--surface);border:1px solid var(--border);border-radius:16px}
+  .header h1{font-size:18px;font-weight:800;color:var(--text-bright);letter-spacing:-.5px}
+  .header p{font-size:11px;color:var(--text-dim);font-family:'DM Mono',monospace;margin-top:2px}
+  .status-pill{display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:20px;font-size:11px;font-family:'DM Mono',monospace;border:1px solid var(--border);background:rgba(136,136,170,.1);color:var(--text-dim);transition:all .3s}
+  .status-pill.listening{background:rgba(67,233,123,.1);color:var(--accent3);border-color:rgba(67,233,123,.3)}
+  .status-pill.thinking{background:rgba(108,99,255,.1);color:var(--accent);border-color:rgba(108,99,255,.3)}
+  .dot{width:7px;height:7px;border-radius:50%;background:currentColor}
+  .dot.pulse{animation:pulse 1.2s ease-in-out infinite}
+  @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.8)}}
+  .setup-screen{background:var(--surface);border:1px solid rgba(108,99,255,.4);border-radius:20px;padding:24px 20px;display:flex;flex-direction:column;gap:16px}
+  .setup-screen h2{font-size:20px;font-weight:800;color:var(--text-bright);text-align:center}
+  .setup-screen p{font-size:13px;color:var(--text-dim);line-height:1.6;text-align:center}
+  .key-input{width:100%;padding:14px;border-radius:12px;border:1px solid var(--border);background:var(--surface2);color:var(--text-bright);font-family:'DM Mono',monospace;font-size:13px;outline:none}
+  .key-input:focus{border-color:var(--accent)}
+  .key-input::placeholder{color:var(--text-dim)}
+  .big-btn{width:100%;padding:16px;border-radius:14px;border:none;font-family:'Syne',sans-serif;font-size:16px;font-weight:700;cursor:pointer;transition:all .2s;background:linear-gradient(135deg,var(--accent),#9c5fff);color:white;box-shadow:0 4px 20px rgba(108,99,255,.4)}
+  .big-btn:active{transform:scale(.98)}
+  .big-btn.green{background:linear-gradient(135deg,var(--accent3),#00c853);color:#000;box-shadow:0 4px 20px rgba(67,233,123,.4)}
+  .hint{font-size:11px;color:var(--text-dim);line-height:1.6;text-align:center}
+  .perm-screen{background:var(--surface);border:1px solid rgba(67,233,123,.4);border-radius:20px;padding:24px 20px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:16px}
+  .perm-screen h2{font-size:20px;font-weight:800;color:var(--text-bright)}
+  .perm-screen p{font-size:13px;color:var(--text-dim);line-height:1.6}
+  .main-ui{display:none;flex-direction:column;gap:12px}
+  .main-ui.show{display:flex}
+  .mic-section{display:flex;flex-direction:column;align-items:center;gap:12px;padding:24px 20px;background:var(--surface);border:1px solid var(--border);border-radius:20px}
+  .mic-btn{width:80px;height:80px;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:32px;transition:all .2s;background:linear-gradient(135deg,var(--accent),#9c5fff);box-shadow:0 4px 24px rgba(108,99,255,.4)}
+  .mic-btn.active{background:linear-gradient(135deg,var(--accent2),#ff4060);animation:micPulse 1.5s ease-in-out infinite}
+  @keyframes micPulse{0%,100%{box-shadow:0 4px 32px rgba(255,101,132,.5)}50%{box-shadow:0 4px 48px rgba(255,101,132,.8),0 0 0 12px rgba(255,101,132,.1)}}
+  .mic-label{font-size:12px;color:var(--text-dim);font-family:'DM Mono',monospace}
+  .transcript-box{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:16px;min-height:80px;max-height:120px;overflow-y:auto}
+  .transcript-box h3{font-size:10px;font-family:'DM Mono',monospace;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
+  .transcript-text{font-size:13px;line-height:1.6;color:var(--text);font-family:'DM Mono',monospace}
+  .transcript-text.empty{color:var(--text-dim);font-style:italic}
+  .controls{display:flex;gap:8px}
+  .ctrl-btn{flex:1;padding:12px;border:1px solid var(--border);border-radius:12px;background:var(--surface);color:var(--text-dim);font-family:'Syne',sans-serif;font-size:12px;font-weight:600;cursor:pointer}
+  .ctrl-btn:active{background:var(--surface2);color:var(--text)}
+  .coach-section{display:flex;flex-direction:column;gap:10px}
+  .coach-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:16px;animation:slideIn .4s ease-out}
+  @keyframes slideIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+  .coach-card.urgent{border-color:rgba(255,101,132,.4);background:rgba(255,101,132,.05)}
+  .coach-card.suggestion{border-color:rgba(108,99,255,.4);background:rgba(108,99,255,.05)}
+  .coach-card.positive{border-color:rgba(67,233,123,.4);background:rgba(67,233,123,.05)}
+  .coach-card.warning{border-color:rgba(247,151,30,.4);background:rgba(247,151,30,.05)}
+  .card-header{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+  .card-icon{font-size:16px}
+  .card-type{font-size:10px;font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:1px;font-weight:500}
+  .urgent .card-type{color:var(--accent2)}.suggestion .card-type{color:var(--accent)}.positive .card-type{color:var(--accent3)}.warning .card-type{color:var(--warn)}
+  .card-content{font-size:14px;line-height:1.6;color:var(--text)}
+  .say-this{margin-top:10px;padding:10px 12px;background:rgba(255,255,255,.04);border-left:3px solid currentColor;border-radius:0 8px 8px 0;font-size:13px;font-style:italic;color:var(--text-bright);line-height:1.5}
+  .urgent .say-this{border-color:var(--accent2)}.suggestion .say-this{border-color:var(--accent)}.positive .say-this{border-color:var(--accent3)}.warning .say-this{border-color:var(--warn)}
+  .thinking-indicator{display:flex;align-items:center;gap:8px;padding:14px 16px;background:var(--surface);border:1px solid rgba(108,99,255,.3);border-radius:12px;font-size:12px;font-family:'DM Mono',monospace;color:var(--accent)}
+  .thinking-dots span{display:inline-block;animation:blink 1.2s ease-in-out infinite}
+  .thinking-dots span:nth-child(2){animation-delay:.2s}.thinking-dots span:nth-child(3){animation-delay:.4s}
+  @keyframes blink{0%,100%{opacity:.2}50%{opacity:1}}
+  .summary-panel{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:16px}
+  .summary-panel h3{font-size:12px;font-family:'DM Mono',monospace;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px}
+  .action-items{display:flex;flex-direction:column;gap:6px}
+  .action-item{display:flex;align-items:flex-start;gap:8px;font-size:13px;line-height:1.5;padding:8px 10px;background:rgba(255,255,255,.03);border-radius:8px}
+  .action-item::before{content:'→';color:var(--accent);font-family:'DM Mono',monospace;flex-shrink:0;margin-top:1px}
+  .error-msg{padding:12px 16px;background:rgba(255,101,132,.1);border:1px solid rgba(255,101,132,.3);border-radius:12px;font-size:13px;color:var(--accent2);font-family:'DM Mono',monospace}
+  ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
 </style>
 </head>
 <body>
 <div class="app">
-
   <div class="header">
-    <div>
-      <h1>PO Coach</h1>
-      <p>Real-time meeting assistant</p>
-    </div>
-    <div class="status-pill" id="statusPill">
-      <div class="dot" id="statusDot"></div>
-      <span id="statusText">Ready</span>
-    </div>
+    <div><h1>PO Coach</h1><p>Real-time meeting assistant</p></div>
+    <div class="status-pill" id="statusPill"><div class="dot" id="statusDot"></div><span id="statusText">Ready</span></div>
   </div>
 
-  <!-- Step 1: API Key -->
   <div class="setup-screen" id="setupScreen">
     <div style="font-size:48px;text-align:center">🔑</div>
     <h2>Enter Your API Key</h2>
-    <p>Paste your Google Gemini API key below. It stays on your device only and is never shared with anyone.</p>
-    <input type="password" class="key-input" id="apiKeyInput" placeholder="Paste your Gemini API key here..." />
+    <p>Paste your free Google Gemini API key. It stays on your device only.</p>
+    <input type="password" class="key-input" id="apiKeyInput" placeholder="Paste your Gemini API key here..."/>
     <button class="big-btn" onclick="saveKey()">Save & Continue →</button>
     <p class="hint">Get a free key at aistudio.google.com → Get API Key. No credit card needed.</p>
   </div>
 
-  <!-- Step 2: Microphone Permission -->
   <div class="perm-screen" id="permScreen" style="display:none">
     <div style="font-size:52px">🎙️</div>
     <h2>Allow Microphone</h2>
     <p>Tap below and allow microphone access when Safari asks.</p>
     <button class="big-btn green" onclick="askPermission()">🎙️ Enable Microphone</button>
-    <p class="hint">If you already denied it: Settings → Safari → Microphone → Allow → Refresh</p>
+    <p class="hint">Must be Safari on iPhone. If blocked: Settings → Safari → Microphone → Allow → Refresh</p>
   </div>
 
-  <!-- Step 3: Main App -->
   <div class="main-ui" id="mainUI">
     <div class="mic-section">
       <button class="mic-btn" id="micBtn" onclick="toggleListening()">🎙️</button>
@@ -142,99 +118,84 @@
     <div class="coach-section" id="coachSection">
       <div class="coach-card suggestion">
         <div class="card-header"><span class="card-icon">👋</span><span class="card-type">Getting Started</span></div>
-        <div class="card-content">
-          Tap the mic and place your phone on the table. I'll coach you in real time.
+        <div class="card-content">Tap the mic and place your phone on the table. I will coach you in real time.
           <div class="say-this">"Thanks for joining. Mario escalated the status mismatch issue — I want us to leave with a clear plan."</div>
         </div>
       </div>
     </div>
   </div>
-
 </div>
+
 <script>
-const SYSTEM_PROMPT = `You are a real-time Product Owner (PO) meeting coach. The user is Pantha Shah, a first-time PO at Walgreens on the Digital Refill/SRMS project. Analyze what was just said and give immediate coaching.
+var GEMINI_KEY = localStorage.getItem('gemini_key') || '';
+var isListening=false, recognition=null, fullTranscript='', buffer='', coachTimer=null, thinking=false;
 
-Context: Status mismatches between Promote and IC+ needing manual fixes. Mario Cano escalated. Team: Lakshmi Vijai, Tarun Kumar, Smita Wandhare, Vinoth. Root cause: race conditions in IC+. Need production logs from Sayantan Bera (TCS). Features in ADO: 1898117, 1898126, 1898128.
-
-Respond ONLY in this JSON format, no extra text:
-{"type":"urgent|suggestion|positive|warning","icon":"emoji","label":"short label","observation":"one sentence what just happened","say_this":"exact natural words Pantha should say now, under 35 words"}
-
-Rules: say_this sounds like a real human. Never commit to timelines without team input. Push to clarify vague statements. Remind to capture action items. Ask for plain English when jargon is used. Confirm decisions out loud.`;
-
-let isListening=false, recognition=null, fullTranscript='', buffer='', coachTimer=null, thinking=false;
-let GEMINI_KEY = localStorage.getItem('gemini_key') || '';
-
-// If key already saved skip setup screen
-window.onload = () => {
+window.onload = function() {
   if(GEMINI_KEY) {
-    document.getElementById('setupScreen').style.display = 'none';
-    document.getElementById('permScreen').style.display = 'flex';
+    document.getElementById('setupScreen').style.display='none';
+    document.getElementById('permScreen').style.display='flex';
   }
 };
 
 function saveKey() {
-  const key = document.getElementById('apiKeyInput').value.trim();
+  var key = document.getElementById('apiKeyInput').value.trim();
   if(!key){ alert('Please paste your API key first.'); return; }
   GEMINI_KEY = key;
   localStorage.setItem('gemini_key', key);
-  document.getElementById('setupScreen').style.display = 'none';
-  document.getElementById('permScreen').style.display = 'flex';
+  document.getElementById('setupScreen').style.display='none';
+  document.getElementById('permScreen').style.display='flex';
 }
 
 async function askPermission() {
   try {
-    const stream = await navigator.mediaDevices.getUserMedia({audio:true, video:false});
-    stream.getTracks().forEach(t => t.stop());
-    document.getElementById('permScreen').style.display = 'none';
+    var stream = await navigator.mediaDevices.getUserMedia({audio:true,video:false});
+    stream.getTracks().forEach(function(t){t.stop();});
+    document.getElementById('permScreen').style.display='none';
     document.getElementById('mainUI').classList.add('show');
   } catch(e) {
-    if(e.name === 'NotAllowedError') {
-      document.getElementById('permScreen').innerHTML = `
-        <div style="font-size:48px">🚫</div>
-        <h2 style="color:var(--accent2)">Access Denied</h2>
-        <p>Go to Settings → Safari → Microphone → Allow, then refresh.</p>
-        <button class="big-btn" onclick="location.reload()">🔄 Refresh & Try Again</button>`;
+    if(e.name==='NotAllowedError'){
+      document.getElementById('permScreen').innerHTML='<div style="font-size:48px">🚫</div><h2 style="color:var(--accent2)">Access Denied</h2><p>Settings → Safari → Microphone → Allow, then refresh.</p><button class="big-btn" onclick="location.reload()">🔄 Refresh</button>';
     } else {
-      alert('Error: ' + e.message);
+      alert('Error: '+e.message);
     }
   }
 }
 
 function initRecognition() {
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   if(!SR){ showError('Use Safari on iPhone.'); return null; }
-  const r = new SR();
-  r.continuous = true;
-  r.interimResults = true;
-  r.lang = 'en-US';
-  r.onresult = e => {
-    let final='', interim='';
-    for(let i=e.resultIndex;i<e.results.length;i++){
-      const t = e.results[i][0].transcript;
+  var r = new SR();
+  r.continuous=true; r.interimResults=true; r.lang='en-US';
+  r.onresult = function(e) {
+    var final='', interim='';
+    for(var i=e.resultIndex;i<e.results.length;i++){
+      var t=e.results[i][0].transcript;
       if(e.results[i].isFinal) final+=t; else interim+=t;
     }
     if(final){
       fullTranscript+=' '+final; buffer+=' '+final;
       updateT(final.trim());
       clearTimeout(coachTimer);
-      coachTimer=setTimeout(()=>{ if(buffer.trim().length>15){analyze(buffer.trim());buffer='';} },4000);
+      coachTimer=setTimeout(function(){
+        if(buffer.trim().length>15){analyze(buffer.trim());buffer='';}
+      },4000);
     } else if(interim) updateT(interim.trim());
   };
-  r.onerror = e => { if(e.error==='not-allowed'){ showError('Microphone blocked. Settings → Safari → Microphone → Allow'); stopListening(); } };
-  r.onend = () => { if(isListening) setTimeout(()=>{ try{r.start();}catch(e){} },300); };
+  r.onerror=function(e){ if(e.error==='not-allowed'){showError('Mic blocked. Settings → Safari → Microphone → Allow');stopListening();} };
+  r.onend=function(){ if(isListening) setTimeout(function(){try{r.start();}catch(e){}},300); };
   return r;
 }
 
-function updateT(t) {
-  const el = document.getElementById('transcriptEl');
+function updateT(t){
+  var el=document.getElementById('transcriptEl');
   el.classList.remove('empty');
-  if(t) el.textContent = t;
+  if(t) el.textContent=t;
 }
 
-function toggleListening(){ isListening ? stopListening() : startListening(); }
+function toggleListening(){ isListening?stopListening():startListening(); }
 
 function startListening(){
-  recognition = initRecognition();
+  recognition=initRecognition();
   if(!recognition) return;
   try{
     recognition.start(); isListening=true;
@@ -242,7 +203,7 @@ function startListening(){
     document.getElementById('micBtn').textContent='⏹️';
     document.getElementById('micLabel').textContent='Listening... tap to stop';
     setStatus('listening','Listening');
-  }catch(e){ showError('Could not start mic. Try again.'); }
+  }catch(e){showError('Could not start mic.');}
 }
 
 function stopListening(){
@@ -256,7 +217,7 @@ function stopListening(){
 }
 
 function setStatus(type,text){
-  const p=document.getElementById('statusPill'), d=document.getElementById('statusDot');
+  var p=document.getElementById('statusPill'),d=document.getElementById('statusDot');
   p.className='status-pill '+type;
   d.className='dot'+(type!=='idle'?' pulse':'');
   document.getElementById('statusText').textContent=text;
@@ -265,95 +226,113 @@ function setStatus(type,text){
 async function analyze(text){
   if(thinking) return;
   thinking=true; setStatus('thinking','Thinking...'); showThinking();
+  
+  var prompt = 'You are a Product Owner meeting coach for Pantha Shah, a first-time PO at Walgreens. ' +
+    'The team is working on fixing status mismatches between Promote and IC+ systems. Mario Cano escalated this issue. ' +
+    'Team members: Lakshmi Vijai, Tarun Kumar, Smita Wandhare, Vinoth. They need production logs from Sayantan Bera at TCS.\n\n' +
+    'What was just said in the meeting:\n"' + text + '"\n\n' +
+    'Full conversation so far:\n"' + fullTranscript.slice(-400) + '"\n\n' +
+    'Give Pantha coaching. Respond with EXACTLY these 4 lines, nothing else:\n' +
+    'TYPE: urgent OR suggestion OR positive OR warning\n' +
+    'ICON: one emoji\n' +
+    'OBSERVATION: one short sentence about what just happened\n' +
+    'SAY: exact words Pantha should say right now in natural conversational language under 30 words\n\n' +
+    'Important: SAY must sound like a real person not corporate speak. Push to clarify vague points. Identify who owns action items. Ask for plain English when technical jargon used.';
+
   try{
-    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`,{
+    var res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key='+GEMINI_KEY,{
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({
-        contents:[{parts:[{text: SYSTEM_PROMPT + '\n\nJust said in meeting:\n"' + text + '"\n\nFull context so far:\n"' + fullTranscript.slice(-500) + '"'}]}],
-        generationConfig:{temperature:0.7,maxOutputTokens:500}
+        contents:[{parts:[{text:prompt}]}],
+        generationConfig:{temperature:0.7,maxOutputTokens:300}
       })
     });
-    const data = await res.json();
-    const raw = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-    let c;
-    try{ 
-      // Try to extract JSON even if wrapped in markdown or extra text
-      const jsonMatch = raw.match(/\{[\s\S]*\}/);
-      const jsonStr = jsonMatch ? jsonMatch[0] : raw;
-      c = JSON.parse(jsonStr.replace(/```json|```/g,'').trim()); 
-      // Validate required fields
-      if(!c.type || !c.say_this) throw new Error('Invalid format');
-    }
-    catch(e){ 
-      // Try to extract say_this from raw text if JSON fails
-      const sayMatch = raw.match(/say_this["\s:]+([^"}\n]+)/i);
-      const obsMatch = raw.match(/observation["\s:]+([^"}\n]+)/i);
+    var data = await res.json();
+    var raw = (data.candidates&&data.candidates[0]&&data.candidates[0].content&&data.candidates[0].content.parts&&data.candidates[0].content.parts[0]&&data.candidates[0].content.parts[0].text)||'';
+    
+    var typeM=raw.match(/TYPE:\s*(\w+)/i);
+    var iconM=raw.match(/ICON:\s*(\S+)/i);
+    var obsM=raw.match(/OBSERVATION:\s*(.+)/i);
+    var sayM=raw.match(/SAY:\s*(.+)/i);
+    
+    var c;
+    if(typeM&&sayM){
+      var t=typeM[1].toLowerCase().trim();
+      if(['urgent','suggestion','positive','warning'].indexOf(t)===-1) t='suggestion';
       c={
-        type:'suggestion',
-        icon:'💡',
-        label:'Coach Tip',
-        observation: obsMatch ? obsMatch[1].trim() : 'Something important was just said.',
-        say_this: sayMatch ? sayMatch[1].trim() : 'Can you clarify that so I can capture it correctly for the team?'
-      }; 
+        type:t,
+        icon:iconM?iconM[1].trim():'💡',
+        label:t.charAt(0).toUpperCase()+t.slice(1),
+        observation:obsM?obsM[1].trim():'Important point raised in the meeting.',
+        say_this:sayM[1].trim()
+      };
+    } else {
+      c={type:'suggestion',icon:'💡',label:'Tip',observation:'Keep the conversation focused.',say_this:'Can you walk me through that so I can make sure we capture it correctly?'};
     }
     removeThinking(); addCard(c); setStatus('listening','Listening');
   }catch(e){
-    removeThinking();
-    if(e.message && e.message.includes('403')){ showError('Invalid API key. Tap Clear and re-enter your key.'); }
-    else { showError('Connection issue. Still listening...'); }
-    setStatus('listening','Listening');
+    removeThinking(); showError('Connection issue. Still listening...'); setStatus('listening','Listening');
   }
   thinking=false;
 }
 
 function showThinking(){
-  const s=document.getElementById('coachSection');
-  const el=document.createElement('div'); el.className='thinking-indicator'; el.id='thinkEl';
-  el.innerHTML=`<span>🧠</span> Analyzing <span class="thinking-dots"><span>.</span><span>.</span><span>.</span></span>`;
+  var s=document.getElementById('coachSection');
+  var el=document.createElement('div'); el.className='thinking-indicator'; el.id='thinkEl';
+  el.innerHTML='<span>🧠</span> Analyzing <span class="thinking-dots"><span>.</span><span>.</span><span>.</span></span>';
   s.insertBefore(el,s.firstChild);
 }
-function removeThinking(){ const el=document.getElementById('thinkingEl')||document.getElementById('thinkEl'); if(el)el.remove(); }
+
+function removeThinking(){
+  var el=document.getElementById('thinkEl'); if(el)el.remove();
+}
 
 function addCard(c){
-  const s=document.getElementById('coachSection');
-  const card=document.createElement('div'); card.className=`coach-card ${c.type}`;
-  card.innerHTML=`<div class="card-header"><span class="card-icon">${c.icon}</span><span class="card-type">${c.label}</span></div><div class="card-content">${c.observation}<div class="say-this">"${c.say_this}"</div></div>`;
+  var s=document.getElementById('coachSection');
+  var card=document.createElement('div'); card.className='coach-card '+c.type;
+  card.innerHTML='<div class="card-header"><span class="card-icon">'+c.icon+'</span><span class="card-type">'+c.label+'</span></div><div class="card-content">'+c.observation+'<div class="say-this">"'+c.say_this+'"</div></div>';
   s.insertBefore(card,s.firstChild);
-  const cards=s.querySelectorAll('.coach-card');
+  var cards=s.querySelectorAll('.coach-card');
   if(cards.length>5) cards[cards.length-1].remove();
 }
 
 async function getSummary(){
-  if(!fullTranscript.trim()){ showError('Nothing recorded yet.'); return; }
+  if(!fullTranscript.trim()){showError('Nothing recorded yet.');return;}
   stopListening(); setStatus('thinking','Summarizing...'); showThinking();
+  
+  var prompt = 'Extract action items for Pantha Shah, a first-time Product Owner at Walgreens on the Digital Refill project. ' +
+    'Return ONLY a numbered list of action items, one per line, starting with a verb. Max 6 items. ' +
+    'Focus on what Pantha specifically needs to do as the PO.\n\nMeeting transcript:\n' + fullTranscript;
+  
   try{
-    const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`,{
+    var res=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key='+GEMINI_KEY,{
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({
-        contents:[{parts:[{text:'Extract action items for Pantha Shah, a first-time Product Owner at Walgreens on the Digital Refill project. Return ONLY a JSON array of strings. Max 6 items. Each starts with a verb. Be specific to her PO role.\n\nTranscript:\n'+fullTranscript}]}],
-        generationConfig:{temperature:0.3,maxOutputTokens:500}
+        contents:[{parts:[{text:prompt}]}],
+        generationConfig:{temperature:0.3,maxOutputTokens:400}
       })
     });
-    const data=await res.json();
-    const raw=data.candidates?.[0]?.content?.parts?.[0]?.text||'[]';
-    let items; try{items=JSON.parse(raw.replace(/```json|```/g,'').trim());}catch(e){items=['Follow up on action items from this meeting'];}
+    var data=await res.json();
+    var raw=(data.candidates&&data.candidates[0]&&data.candidates[0].content&&data.candidates[0].content.parts&&data.candidates[0].content.parts[0]&&data.candidates[0].content.parts[0].text)||'';
+    var items=raw.split('\n').filter(function(l){return l.trim().length>5;}).map(function(l){return l.replace(/^\d+\.\s*/,'').trim();}).filter(function(l){return l.length>0;}).slice(0,6);
+    if(items.length===0) items=['Follow up on action items from this meeting'];
     removeThinking(); showSummary(items); setStatus('idle','Done');
-  }catch(e){ removeThinking(); showError('Could not generate summary.'); setStatus('idle','Error'); }
+  }catch(e){removeThinking();showError('Could not generate summary.');setStatus('idle','Error');}
 }
 
 function showSummary(items){
-  const s=document.getElementById('coachSection');
-  const p=document.createElement('div'); p.className='summary-panel';
-  p.innerHTML=`<h3>📋 Your Action Items</h3><div class="action-items">${items.map(i=>`<div class="action-item">${i}</div>`).join('')}</div>`;
+  var s=document.getElementById('coachSection');
+  var p=document.createElement('div'); p.className='summary-panel';
+  p.innerHTML='<h3>📋 Your Action Items</h3><div class="action-items">'+items.map(function(i){return '<div class="action-item">'+i+'</div>';}).join('')+'</div>';
   s.insertBefore(p,s.firstChild);
 }
 
 function showError(msg){
-  const s=document.getElementById('coachSection');
-  const el=document.createElement('div'); el.className='error-msg'; el.textContent=msg;
-  s.insertBefore(el,s.firstChild); setTimeout(()=>el.remove(),6000);
+  var s=document.getElementById('coachSection');
+  var el=document.createElement('div'); el.className='error-msg'; el.textContent=msg;
+  s.insertBefore(el,s.firstChild); setTimeout(function(){el.remove();},6000);
 }
 
 function clearAll(){
@@ -361,13 +340,7 @@ function clearAll(){
   localStorage.removeItem('gemini_key'); GEMINI_KEY='';
   document.getElementById('transcriptEl').textContent='Waiting for speech...';
   document.getElementById('transcriptEl').classList.add('empty');
-  document.getElementById('coachSection').innerHTML=`
-    <div class="coach-card suggestion">
-      <div class="card-header"><span class="card-icon">👋</span><span class="card-type">Getting Started</span></div>
-      <div class="card-content">Tap the mic and place your phone on the table. I'll coach you in real time.
-        <div class="say-this">"Thanks for joining. Mario escalated the status mismatch issue — I want us to leave with a clear plan."</div>
-      </div>
-    </div>`;
+  document.getElementById('coachSection').innerHTML='<div class="coach-card suggestion"><div class="card-header"><span class="card-icon">👋</span><span class="card-type">Getting Started</span></div><div class="card-content">Tap the mic and place your phone on the table.<div class="say-this">"Thanks for joining. Mario escalated the status mismatch issue — I want us to leave with a clear plan."</div></div></div>';
   setStatus('idle','Ready');
   document.getElementById('mainUI').classList.remove('show');
   document.getElementById('permScreen').style.display='none';

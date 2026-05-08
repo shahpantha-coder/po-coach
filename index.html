@@ -70,7 +70,7 @@
   .action-items{display:flex;flex-direction:column;gap:6px}
   .action-item{display:flex;align-items:flex-start;gap:8px;font-size:13px;line-height:1.5;padding:8px 10px;background:rgba(255,255,255,.03);border-radius:8px}
   .action-item::before{content:'→';color:var(--accent);font-family:'DM Mono',monospace;flex-shrink:0;margin-top:1px}
-  .error-msg{padding:12px 16px;background:rgba(255,101,132,.1);border:1px solid rgba(255,101,132,.3);border-radius:12px;font-size:13px;color:var(--accent2);font-family:'DM Mono',monospace}
+  .error-msg{padding:12px 16px;background:rgba(255,101,132,.1);border:1px solid rgba(255,101,132,.3);border-radius:12px;font-size:13px;color:var(--accent2);font-family:'DM Mono',monospace;line-height:1.5}
   ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
 </style>
 </head>
@@ -84,10 +84,10 @@
   <div class="setup-screen" id="setupScreen">
     <div style="font-size:48px;text-align:center">🔑</div>
     <h2>Enter Your API Key</h2>
-    <p>Paste your free Google Gemini API key. It stays on your device only.</p>
-    <input type="password" class="key-input" id="apiKeyInput" placeholder="Paste your Gemini API key here..."/>
+    <p>Paste your Anthropic API key below. It stays on your device only.</p>
+    <input type="password" class="key-input" id="apiKeyInput" placeholder="Paste your Anthropic API key here..."/>
     <button class="big-btn" onclick="saveKey()">Save & Continue →</button>
-    <p class="hint">Get a free key at aistudio.google.com → Get API Key. No credit card needed.</p>
+    <p class="hint">Get your key at console.anthropic.com → API Keys</p>
   </div>
 
   <div class="perm-screen" id="permScreen" style="display:none">
@@ -123,12 +123,11 @@
 </div>
 
 <script>
-var GEMINI_KEY = localStorage.getItem('gemini_key') || '';
-var isListening=false, recognition=null, fullTranscript='', buffer='', coachTimer=null, thinking=false;
-var lastCoaching = '';
+var API_KEY = localStorage.getItem('anthropic_key') || '';
+var isListening=false, recognition=null, fullTranscript='', buffer='', coachTimer=null, thinking=false, lastCoaching='';
 
 window.onload = function() {
-  if(GEMINI_KEY) {
+  if(API_KEY) {
     document.getElementById('setupScreen').style.display='none';
     document.getElementById('permScreen').style.display='flex';
   }
@@ -137,15 +136,15 @@ window.onload = function() {
 function saveKey() {
   var key = document.getElementById('apiKeyInput').value.trim();
   if(!key){ alert('Please paste your API key first.'); return; }
-  GEMINI_KEY = key;
-  localStorage.setItem('gemini_key', key);
+  API_KEY = key;
+  localStorage.setItem('anthropic_key', key);
   document.getElementById('setupScreen').style.display='none';
   document.getElementById('permScreen').style.display='flex';
 }
 
 function resetKey() {
-  localStorage.removeItem('gemini_key');
-  GEMINI_KEY = '';
+  localStorage.removeItem('anthropic_key');
+  API_KEY = '';
   stopListening();
   fullTranscript=''; buffer='';
   document.getElementById('mainUI').classList.remove('show');
@@ -232,54 +231,55 @@ async function analyze(text){
   if(thinking) return;
   thinking=true; setStatus('thinking','Thinking...'); showThinking();
 
-  var prompt = 'You are a Product Owner meeting coach for Pantha Shah.\n\n' +
-    'SITUATION: Pantha is a first-time Product Owner at Walgreens. Her team is investigating status mismatches between Promote and IC+ systems. ' +
-    'Mario Cano (senior leader) escalated this and wants a plan. Team members are Lakshmi Vijai, Tarun Kumar, Smita Wandhare, Vinoth. ' +
-    'They need production logs from Sayantan Bera at TCS. Features are tracked in ADO.\n\n' +
-    'WHAT WAS JUST SAID: "' + text + '"\n\n' +
-    'PREVIOUS COACHING GIVEN: "' + lastCoaching + '"\n\n' +
-    'YOUR JOB: Give Pantha one specific thing to say RIGHT NOW that is different from the previous coaching. ' +
-    'Be specific to exactly what was just said. Do NOT give generic advice about ownership. ' +
-    'Think about: Does she need to ask a clarifying question? Push back on something? Confirm a decision? ' +
-    'Ask for a timeline? Summarize what was said? Connect it to Mario\'s ask?\n\n' +
-    'Reply with ONLY the exact words Pantha should say. Natural conversational language. No labels. No explanation. Just the words. Maximum 25 words.';
+  var systemPrompt = 'You are a Product Owner meeting coach for Pantha Shah, a first-time PO at Walgreens working on fixing status mismatches between Promote and IC+ systems. Mario Cano escalated this. Team: Lakshmi Vijai, Tarun Kumar, Smita Wandhare, Vinoth. Need production logs from Sayantan Bera at TCS.\n\nGive Pantha one specific thing to say right now. Be specific to what was just said. Give different advice each time.\n\nRespond with ONLY the words Pantha should say. Natural human language. No labels. No explanation. Maximum 25 words.';
+
+  var userMsg = 'What was just said: "' + text + '"\n\nPrevious coaching: "' + lastCoaching + '"\n\nConversation so far: "' + fullTranscript.slice(-300) + '"';
 
   try{
-    var res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent',{
-      method:'POST',
-      headers:{'Content-Type':'application/json','x-goog-api-key':GEMINI_KEY},
-      body:JSON.stringify({
-        contents:[{parts:[{text:prompt}]}],
-        generationConfig:{temperature:0.9,maxOutputTokens:100}
+    var res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': API_KEY,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 100,
+        system: systemPrompt,
+        messages: [{role: 'user', content: userMsg}]
       })
     });
+
     var data = await res.json();
-    var raw = '';
-    if(data.candidates&&data.candidates[0]&&data.candidates[0].content&&data.candidates[0].content.parts&&data.candidates[0].content.parts[0]){
-      raw = data.candidates[0].content.parts[0].text || '';
+
+    if(data.error){
+      showError('API Error: ' + data.error.message);
+      removeThinking(); setStatus('listening','Listening');
+      thinking=false; return;
     }
 
-    raw = raw.trim().replace(/^["']|["']$/g,'').trim();
+    var raw = data.content && data.content[0] ? data.content[0].text.trim() : '';
+    raw = raw.replace(/^["']|["']$/g,'').trim();
 
     if(raw.length > 5){
       lastCoaching = raw;
-
-      // Determine card type based on keywords in what was said
-      var type = 'suggestion';
-      var icon = '💡';
-      var tl = text.toLowerCase();
-      if(tl.indexOf('agree')>-1||tl.indexOf('decision')>-1||tl.indexOf('confirm')>-1||tl.indexOf('yes')>-1){ type='urgent'; icon='🚨'; }
-      else if(tl.indexOf('done')>-1||tl.indexOf('complete')>-1||tl.indexOf('finished')>-1){ type='positive'; icon='✅'; }
-      else if(tl.indexOf("don't know")>-1||tl.indexOf('not sure')>-1||tl.indexOf('unclear')>-1||tl.indexOf('confused')>-1){ type='warning'; icon='⚠️'; }
-      else if(tl.indexOf('week')>-1||tl.indexOf('day')>-1||tl.indexOf('when')>-1||tl.indexOf('timeline')>-1){ type='urgent'; icon='⏰'; }
-
-      var labels = {urgent:'Speak Up Now',suggestion:'Coach Tip',positive:'Good Move',warning:'Watch Out'};
-      addCard({type:type, icon:icon, label:labels[type], observation:'Based on what was just said:', say_this:raw});
+      var type='suggestion', icon='💡';
+      var tl=text.toLowerCase();
+      if(tl.indexOf('agree')>-1||tl.indexOf('decision')>-1||tl.indexOf('confirm')>-1){type='urgent';icon='🚨';}
+      else if(tl.indexOf('done')>-1||tl.indexOf('complete')>-1){type='positive';icon='✅';}
+      else if(tl.indexOf("don't know")>-1||tl.indexOf('not sure')>-1||tl.indexOf('unclear')>-1){type='warning';icon='⚠️';}
+      else if(tl.indexOf('week')>-1||tl.indexOf('when')>-1||tl.indexOf('timeline')>-1){type='urgent';icon='⏰';}
+      var labels={urgent:'Speak Up Now',suggestion:'Coach Tip',positive:'Good Move',warning:'Watch Out'};
+      addCard({type:type,icon:icon,label:labels[type],observation:'Based on what was just said:',say_this:raw});
     }
 
     removeThinking(); setStatus('listening','Listening');
   }catch(e){
-    removeThinking(); showError('Connection issue. Still listening...'); setStatus('listening','Listening');
+    removeThinking();
+    showError('Connection error: ' + e.message);
+    setStatus('listening','Listening');
   }
   thinking=false;
 }
@@ -291,9 +291,7 @@ function showThinking(){
   s.insertBefore(el,s.firstChild);
 }
 
-function removeThinking(){
-  var el=document.getElementById('thinkEl'); if(el)el.remove();
-}
+function removeThinking(){ var el=document.getElementById('thinkEl'); if(el)el.remove(); }
 
 function addCard(c){
   var s=document.getElementById('coachSection');
@@ -307,27 +305,23 @@ function addCard(c){
 async function getSummary(){
   if(!fullTranscript.trim()){showError('Nothing recorded yet.');return;}
   stopListening(); setStatus('thinking','Summarizing...'); showThinking();
-
-  var prompt = 'Based on this meeting transcript, list the specific action items for Pantha Shah who is the Product Owner at Walgreens on the Digital Refill project. Number each item and start with a verb. Maximum 6 items. Be specific to her PO role.\n\nTranscript:\n'+fullTranscript;
-
   try{
-    var res=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent',{
+    var res=await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',
-      headers:{'Content-Type':'application/json','x-goog-api-key':GEMINI_KEY},
+      headers:{'Content-Type':'application/json','x-api-key':API_KEY,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
       body:JSON.stringify({
-        contents:[{parts:[{text:prompt}]}],
-        generationConfig:{temperature:0.3,maxOutputTokens:400}
+        model:'claude-haiku-4-5-20251001',
+        max_tokens:500,
+        system:'Extract action items for Pantha Shah, first-time Product Owner at Walgreens Digital Refill project. Return a numbered list only. Max 6 items. Each starts with a verb. Be specific to her PO role.',
+        messages:[{role:'user',content:'Meeting transcript:\n'+fullTranscript}]
       })
     });
     var data=await res.json();
-    var raw='';
-    if(data.candidates&&data.candidates[0]&&data.candidates[0].content&&data.candidates[0].content.parts&&data.candidates[0].content.parts[0]){
-      raw=data.candidates[0].content.parts[0].text||'';
-    }
+    var raw = data.content&&data.content[0] ? data.content[0].text : '';
     var items=raw.split('\n').filter(function(l){return l.trim().length>5;}).map(function(l){return l.replace(/^\d+[\.\)]\s*/,'').trim();}).filter(function(l){return l.length>0;}).slice(0,6);
     if(items.length===0) items=['Follow up on action items from this meeting'];
     removeThinking(); showSummary(items); setStatus('idle','Done');
-  }catch(e){removeThinking();showError('Could not generate summary.');setStatus('idle','Error');}
+  }catch(e){removeThinking();showError('Could not generate summary: '+e.message);setStatus('idle','Error');}
 }
 
 function showSummary(items){
@@ -340,7 +334,8 @@ function showSummary(items){
 function showError(msg){
   var s=document.getElementById('coachSection');
   var el=document.createElement('div'); el.className='error-msg'; el.textContent=msg;
-  s.insertBefore(el,s.firstChild); setTimeout(function(){el.remove();},6000);
+  s.insertBefore(el,s.firstChild);
+  setTimeout(function(){if(el.parentNode)el.remove();},15000);
 }
 </script>
 </body>

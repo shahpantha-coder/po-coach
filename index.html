@@ -71,7 +71,6 @@
   .action-item{display:flex;align-items:flex-start;gap:8px;font-size:13px;line-height:1.5;padding:8px 10px;background:rgba(255,255,255,.03);border-radius:8px}
   .action-item::before{content:'→';color:var(--accent);font-family:'DM Mono',monospace;flex-shrink:0;margin-top:1px}
   .error-msg{padding:12px 16px;background:rgba(255,101,132,.1);border:1px solid rgba(255,101,132,.3);border-radius:12px;font-size:13px;color:var(--accent2);font-family:'DM Mono',monospace}
-  .raw-debug{padding:10px;background:rgba(255,255,255,.03);border-radius:8px;font-size:11px;font-family:'DM Mono',monospace;color:var(--text-dim);word-break:break-all;margin-top:8px}
   ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
 </style>
 </head>
@@ -110,7 +109,7 @@
     </div>
     <div class="controls">
       <button class="ctrl-btn" onclick="getSummary()">📋 Get Summary</button>
-      <button class="ctrl-btn" onclick="clearAll()">🗑️ Clear</button>
+      <button class="ctrl-btn" onclick="resetKey()">🔑 Change Key</button>
     </div>
     <div class="coach-section" id="coachSection">
       <div class="coach-card suggestion">
@@ -126,6 +125,7 @@
 <script>
 var GEMINI_KEY = localStorage.getItem('gemini_key') || '';
 var isListening=false, recognition=null, fullTranscript='', buffer='', coachTimer=null, thinking=false;
+var lastCoaching = '';
 
 window.onload = function() {
   if(GEMINI_KEY) {
@@ -141,6 +141,16 @@ function saveKey() {
   localStorage.setItem('gemini_key', key);
   document.getElementById('setupScreen').style.display='none';
   document.getElementById('permScreen').style.display='flex';
+}
+
+function resetKey() {
+  localStorage.removeItem('gemini_key');
+  GEMINI_KEY = '';
+  stopListening();
+  fullTranscript=''; buffer='';
+  document.getElementById('mainUI').classList.remove('show');
+  document.getElementById('permScreen').style.display='none';
+  document.getElementById('setupScreen').style.display='flex';
 }
 
 async function askPermission() {
@@ -222,10 +232,17 @@ async function analyze(text){
   if(thinking) return;
   thinking=true; setStatus('thinking','Thinking...'); showThinking();
 
-  // Simple direct prompt - no formatting requirements, just get the coaching
-  var prompt = 'You are coaching Pantha Shah who is a first-time Product Owner at Walgreens in a meeting about fixing status mismatches between their Promote and IC+ systems. Mario Cano (her boss) escalated this issue. Her team includes Lakshmi Vijai, Tarun Kumar, Smita Wandhare and Vinoth. They need production logs from Sayantan Bera at TCS to investigate.\n\n' +
-    'This was just said in the meeting: "' + text + '"\n\n' +
-    'Give Pantha one specific thing to say right now to be a good Product Owner. Just give me the exact words she should say. Nothing else. No labels, no formatting, just the words. Make it sound natural and human, not corporate.';
+  var prompt = 'You are a Product Owner meeting coach for Pantha Shah.\n\n' +
+    'SITUATION: Pantha is a first-time Product Owner at Walgreens. Her team is investigating status mismatches between Promote and IC+ systems. ' +
+    'Mario Cano (senior leader) escalated this and wants a plan. Team members are Lakshmi Vijai, Tarun Kumar, Smita Wandhare, Vinoth. ' +
+    'They need production logs from Sayantan Bera at TCS. Features are tracked in ADO.\n\n' +
+    'WHAT WAS JUST SAID: "' + text + '"\n\n' +
+    'PREVIOUS COACHING GIVEN: "' + lastCoaching + '"\n\n' +
+    'YOUR JOB: Give Pantha one specific thing to say RIGHT NOW that is different from the previous coaching. ' +
+    'Be specific to exactly what was just said. Do NOT give generic advice about ownership. ' +
+    'Think about: Does she need to ask a clarifying question? Push back on something? Confirm a decision? ' +
+    'Ask for a timeline? Summarize what was said? Connect it to Mario\'s ask?\n\n' +
+    'Reply with ONLY the exact words Pantha should say. Natural conversational language. No labels. No explanation. Just the words. Maximum 25 words.';
 
   try{
     var res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key='+GEMINI_KEY,{
@@ -233,7 +250,7 @@ async function analyze(text){
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({
         contents:[{parts:[{text:prompt}]}],
-        generationConfig:{temperature:0.8,maxOutputTokens:150}
+        generationConfig:{temperature:0.9,maxOutputTokens:100}
       })
     });
     var data = await res.json();
@@ -242,23 +259,22 @@ async function analyze(text){
       raw = data.candidates[0].content.parts[0].text || '';
     }
 
-    raw = raw.trim().replace(/^["']|["']$/g,'');
+    raw = raw.trim().replace(/^["']|["']$/g,'').trim();
 
     if(raw.length > 5){
-      // Determine urgency based on keywords
+      lastCoaching = raw;
+
+      // Determine card type based on keywords in what was said
       var type = 'suggestion';
       var icon = '💡';
       var tl = text.toLowerCase();
-      if(tl.indexOf('decision')>-1||tl.indexOf('agree')>-1||tl.indexOf('confirm')>-1){ type='urgent'; icon='🚨'; }
-      else if(tl.indexOf('great')>-1||tl.indexOf('good')>-1||tl.indexOf('done')>-1){ type='positive'; icon='✅'; }
-      else if(tl.indexOf("don't know")>-1||tl.indexOf('not sure')>-1||tl.indexOf('unclear')>-1){ type='warning'; icon='⚠️'; }
-      else if(tl.indexOf('timeline')>-1||tl.indexOf('deadline')>-1||tl.indexOf('when')>-1){ type='urgent'; icon='⏰'; }
+      if(tl.indexOf('agree')>-1||tl.indexOf('decision')>-1||tl.indexOf('confirm')>-1||tl.indexOf('yes')>-1){ type='urgent'; icon='🚨'; }
+      else if(tl.indexOf('done')>-1||tl.indexOf('complete')>-1||tl.indexOf('finished')>-1){ type='positive'; icon='✅'; }
+      else if(tl.indexOf("don't know")>-1||tl.indexOf('not sure')>-1||tl.indexOf('unclear')>-1||tl.indexOf('confused')>-1){ type='warning'; icon='⚠️'; }
+      else if(tl.indexOf('week')>-1||tl.indexOf('day')>-1||tl.indexOf('when')>-1||tl.indexOf('timeline')>-1){ type='urgent'; icon='⏰'; }
 
-      var label = {urgent:'Speak Up',suggestion:'Coach Tip',positive:'Good Move',warning:'Watch Out'}[type];
-
-      addCard({type:type, icon:icon, label:label, observation:'Based on what was just said:', say_this:raw});
-    } else {
-      addCard({type:'suggestion',icon:'💡',label:'Coach Tip',observation:'Keep the conversation moving:',say_this:'Before we move on — who is owning this and what is the next step?'});
+      var labels = {urgent:'Speak Up Now',suggestion:'Coach Tip',positive:'Good Move',warning:'Watch Out'};
+      addCard({type:type, icon:icon, label:labels[type], observation:'Based on what was just said:', say_this:raw});
     }
 
     removeThinking(); setStatus('listening','Listening');
@@ -292,7 +308,7 @@ async function getSummary(){
   if(!fullTranscript.trim()){showError('Nothing recorded yet.');return;}
   stopListening(); setStatus('thinking','Summarizing...'); showThinking();
 
-  var prompt = 'Based on this meeting transcript, list the specific action items for Pantha Shah who is the Product Owner. Number each item and start with a verb. Maximum 6 items. Be specific.\n\nTranscript:\n'+fullTranscript;
+  var prompt = 'Based on this meeting transcript, list the specific action items for Pantha Shah who is the Product Owner at Walgreens on the Digital Refill project. Number each item and start with a verb. Maximum 6 items. Be specific to her PO role.\n\nTranscript:\n'+fullTranscript;
 
   try{
     var res=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key='+GEMINI_KEY,{
@@ -325,18 +341,6 @@ function showError(msg){
   var s=document.getElementById('coachSection');
   var el=document.createElement('div'); el.className='error-msg'; el.textContent=msg;
   s.insertBefore(el,s.firstChild); setTimeout(function(){el.remove();},6000);
-}
-
-function clearAll(){
-  stopListening(); fullTranscript=''; buffer='';
-  localStorage.removeItem('gemini_key'); GEMINI_KEY='';
-  document.getElementById('transcriptEl').textContent='Waiting for speech...';
-  document.getElementById('transcriptEl').classList.add('empty');
-  document.getElementById('coachSection').innerHTML='<div class="coach-card suggestion"><div class="card-header"><span class="card-icon">👋</span><span class="card-type">Getting Started</span></div><div class="card-content">Tap the mic and place your phone on the table.<div class="say-this">"Thanks for joining. Mario escalated the status mismatch issue — I want us to leave with a clear plan."</div></div></div>';
-  setStatus('idle','Ready');
-  document.getElementById('mainUI').classList.remove('show');
-  document.getElementById('permScreen').style.display='none';
-  document.getElementById('setupScreen').style.display='flex';
 }
 </script>
 </body>

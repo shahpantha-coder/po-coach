@@ -11,7 +11,7 @@
   body{background:var(--bg);color:var(--text);font-family:'Syne',sans-serif;min-height:100vh}
   body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 20% 20%,rgba(108,99,255,.08) 0%,transparent 50%),radial-gradient(ellipse at 80% 80%,rgba(255,101,132,.06) 0%,transparent 50%);pointer-events:none;z-index:0}
   .app{position:relative;z-index:1;max-width:480px;margin:0 auto;padding:16px;min-height:100vh;display:flex;flex-direction:column;gap:12px;padding-bottom:40px}
-  .header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;background:var(--surface);border:1px solid var(--border);border-radius:16px}
+  .header{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;background:var(--surface);border:1px solid var(--border);border-radius:16px}
   .header h1{font-size:18px;font-weight:800;color:var(--text-bright);letter-spacing:-.5px}
   .header p{font-size:11px;color:var(--text-dim);font-family:'DM Mono',monospace;margin-top:2px}
   .status-pill{display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:20px;font-size:11px;font-family:'DM Mono',monospace;border:1px solid var(--border);background:rgba(136,136,170,.1);color:var(--text-dim);transition:all .3s}
@@ -20,6 +20,8 @@
   .dot{width:7px;height:7px;border-radius:50%;background:currentColor}
   .dot.pulse{animation:pulse 1.2s ease-in-out infinite}
   @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.8)}}
+
+  /* Setup */
   .setup-screen{background:var(--surface);border:1px solid rgba(108,99,255,.4);border-radius:20px;padding:24px 20px;display:flex;flex-direction:column;gap:16px}
   .setup-screen h2{font-size:20px;font-weight:800;color:var(--text-bright);text-align:center}
   .setup-screen p{font-size:13px;color:var(--text-dim);line-height:1.6;text-align:center}
@@ -30,23 +32,39 @@
   .big-btn:active{transform:scale(.98)}
   .big-btn.green{background:linear-gradient(135deg,var(--accent3),#00c853);color:#000;box-shadow:0 4px 20px rgba(67,233,123,.4)}
   .hint{font-size:11px;color:var(--text-dim);line-height:1.6;text-align:center}
+
+  /* Perm */
   .perm-screen{background:var(--surface);border:1px solid rgba(67,233,123,.4);border-radius:20px;padding:24px 20px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:16px}
   .perm-screen h2{font-size:20px;font-weight:800;color:var(--text-bright)}
   .perm-screen p{font-size:13px;color:var(--text-dim);line-height:1.6}
+
+  /* Main */
   .main-ui{display:none;flex-direction:column;gap:12px}
   .main-ui.show{display:flex}
-  .mic-section{display:flex;flex-direction:column;align-items:center;gap:12px;padding:24px 20px;background:var(--surface);border:1px solid var(--border);border-radius:20px}
+
+  /* Meeting type selector */
+  .meeting-type{display:flex;gap:8px}
+  .type-btn{flex:1;padding:10px 8px;border-radius:12px;border:1px solid var(--border);background:var(--surface);color:var(--text-dim);font-family:'Syne',sans-serif;font-size:11px;font-weight:700;cursor:pointer;text-align:center;transition:all .2s}
+  .type-btn.active{background:rgba(108,99,255,.15);border-color:var(--accent);color:var(--text-bright)}
+
+  .mic-section{display:flex;flex-direction:column;align-items:center;gap:12px;padding:20px;background:var(--surface);border:1px solid var(--border);border-radius:20px}
   .mic-btn{width:80px;height:80px;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:32px;transition:all .2s;background:linear-gradient(135deg,var(--accent),#9c5fff);box-shadow:0 4px 24px rgba(108,99,255,.4)}
   .mic-btn.active{background:linear-gradient(135deg,var(--accent2),#ff4060);animation:micPulse 1.5s ease-in-out infinite}
   @keyframes micPulse{0%,100%{box-shadow:0 4px 32px rgba(255,101,132,.5)}50%{box-shadow:0 4px 48px rgba(255,101,132,.8),0 0 0 12px rgba(255,101,132,.1)}}
   .mic-label{font-size:12px;color:var(--text-dim);font-family:'DM Mono',monospace}
-  .transcript-box{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:16px;min-height:80px;max-height:120px;overflow-y:auto}
-  .transcript-box h3{font-size:10px;font-family:'DM Mono',monospace;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
-  .transcript-text{font-size:13px;line-height:1.6;color:var(--text);font-family:'DM Mono',monospace}
+
+  /* Full transcript */
+  .transcript-box{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:16px;height:180px;overflow-y:auto;display:flex;flex-direction:column}
+  .transcript-box h3{font-size:10px;font-family:'DM Mono',monospace;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;flex-shrink:0}
+  .transcript-inner{flex:1;overflow-y:auto}
+  .transcript-text{font-size:12px;line-height:1.7;color:var(--text);font-family:'DM Mono',monospace;white-space:pre-wrap;word-break:break-word}
   .transcript-text.empty{color:var(--text-dim);font-style:italic}
-  .controls{display:flex;gap:8px}
-  .ctrl-btn{flex:1;padding:12px;border:1px solid var(--border);border-radius:12px;background:var(--surface);color:var(--text-dim);font-family:'Syne',sans-serif;font-size:12px;font-weight:600;cursor:pointer}
+  .word-count{font-size:10px;color:var(--text-dim);font-family:'DM Mono',monospace;margin-top:6px;flex-shrink:0}
+
+  .controls{display:flex;gap:8px;flex-wrap:wrap}
+  .ctrl-btn{flex:1;min-width:70px;padding:10px 6px;border:1px solid var(--border);border-radius:12px;background:var(--surface);color:var(--text-dim);font-family:'Syne',sans-serif;font-size:11px;font-weight:600;cursor:pointer;text-align:center}
   .ctrl-btn:active{background:var(--surface2);color:var(--text)}
+
   .coach-section{display:flex;flex-direction:column;gap:10px}
   .coach-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:16px;animation:slideIn .4s ease-out}
   @keyframes slideIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
@@ -71,6 +89,7 @@
   .action-item{display:flex;align-items:flex-start;gap:8px;font-size:13px;line-height:1.5;padding:8px 10px;background:rgba(255,255,255,.03);border-radius:8px}
   .action-item::before{content:'→';color:var(--accent);font-family:'DM Mono',monospace;flex-shrink:0;margin-top:1px}
   .error-msg{padding:12px 16px;background:rgba(255,101,132,.1);border:1px solid rgba(255,101,132,.3);border-radius:12px;font-size:13px;color:var(--accent2);font-family:'DM Mono',monospace;line-height:1.5}
+  .silent-indicator{padding:10px 14px;background:rgba(67,233,123,.05);border:1px solid rgba(67,233,123,.2);border-radius:10px;font-size:11px;font-family:'DM Mono',monospace;color:var(--accent3);text-align:center}
   ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
 </style>
 </head>
@@ -99,23 +118,40 @@
   </div>
 
   <div class="main-ui" id="mainUI">
+
+    <!-- Meeting type -->
+    <div class="meeting-type">
+      <button class="type-btn" id="btnStandup" onclick="setType('standup')">📋 Standup</button>
+      <button class="type-btn active" id="btnGeneral" onclick="setType('general')">💬 General</button>
+      <button class="type-btn" id="btnReview" onclick="setType('review')">🔍 Review</button>
+    </div>
+
     <div class="mic-section">
       <button class="mic-btn" id="micBtn" onclick="toggleListening()">🎙️</button>
       <span class="mic-label" id="micLabel">Tap to start listening</span>
     </div>
+
+    <!-- Full scrollable transcript -->
     <div class="transcript-box">
-      <h3>Live Transcript</h3>
-      <div class="transcript-text empty" id="transcriptEl">Waiting for speech...</div>
+      <h3>Full Meeting Transcript</h3>
+      <div class="transcript-inner" id="transcriptInner">
+        <div class="transcript-text empty" id="transcriptEl">Waiting for speech...</div>
+      </div>
+      <div class="word-count" id="wordCount">0 words captured</div>
     </div>
+
     <div class="controls">
-      <button class="ctrl-btn" onclick="getSummary()">📋 Get Summary</button>
-      <button class="ctrl-btn" onclick="resetKey()">🔑 Change Key</button>
+      <button class="ctrl-btn" onclick="getSummary()">📋 Summary</button>
+      <button class="ctrl-btn" onclick="newMeeting()">🆕 New</button>
+      <button class="ctrl-btn" onclick="copyTranscript()">📄 Copy</button>
+      <button class="ctrl-btn" onclick="resetKey()">🔑 Key</button>
     </div>
+
     <div class="coach-section" id="coachSection">
       <div class="coach-card suggestion">
         <div class="card-header"><span class="card-icon">👋</span><span class="card-type">Getting Started</span></div>
-        <div class="card-content">Tap the mic and place your phone on the table. I will coach you in real time.
-          <div class="say-this">"Thanks for joining. Mario escalated the status mismatch issue — I want us to leave with a clear plan."</div>
+        <div class="card-content">Select your meeting type above, then tap the mic. I will coach you as PO.
+          <div class="say-this">"Thanks everyone for joining. Let me make sure we leave with clear owners and next steps."</div>
         </div>
       </div>
     </div>
@@ -125,6 +161,11 @@
 <script>
 var API_KEY = localStorage.getItem('anthropic_key') || '';
 var isListening=false, recognition=null, fullTranscript='', buffer='', coachTimer=null, thinking=false, lastCoaching='';
+var meetingType = 'general';
+var wordCount = 0;
+
+// Standup trigger words - only coach when these appear
+var standupTriggers = ['blocked','blocker','stuck','waiting','can\'t','cannot','problem','issue','risk','help','need','delay','behind','unclear','don\'t know','not sure','decision','approve','escalate','mario','deadline','overdue','concern','challenge'];
 
 window.onload = function() {
   if(API_KEY) {
@@ -132,6 +173,25 @@ window.onload = function() {
     document.getElementById('permScreen').style.display='flex';
   }
 };
+
+function setType(type) {
+  meetingType = type;
+  document.querySelectorAll('.type-btn').forEach(function(b){b.classList.remove('active');});
+  document.getElementById('btn' + type.charAt(0).toUpperCase() + type.slice(1)).classList.add('active');
+  
+  var msgs = {
+    standup: 'Standup mode — I will only coach when there is a blocker, risk or decision.',
+    general: 'General mode — I will coach you throughout the meeting as PO.',
+    review: 'Review mode — I will focus on decisions, risks and action items.'
+  };
+  
+  var s = document.getElementById('coachSection');
+  var el = document.createElement('div');
+  el.className = 'silent-indicator';
+  el.textContent = msgs[type];
+  s.insertBefore(el, s.firstChild);
+  setTimeout(function(){if(el.parentNode)el.remove();}, 4000);
+}
 
 function saveKey() {
   var key = document.getElementById('apiKeyInput').value.trim();
@@ -146,10 +206,35 @@ function resetKey() {
   localStorage.removeItem('anthropic_key');
   API_KEY = '';
   stopListening();
-  fullTranscript=''; buffer='';
+  fullTranscript=''; buffer=''; lastCoaching='';
   document.getElementById('mainUI').classList.remove('show');
   document.getElementById('permScreen').style.display='none';
   document.getElementById('setupScreen').style.display='flex';
+}
+
+function newMeeting() {
+  stopListening();
+  fullTranscript=''; buffer=''; lastCoaching=''; wordCount=0;
+  document.getElementById('transcriptEl').textContent='Waiting for speech...';
+  document.getElementById('transcriptEl').classList.add('empty');
+  document.getElementById('wordCount').textContent='0 words captured';
+  document.getElementById('coachSection').innerHTML='<div class="coach-card positive"><div class="card-header"><span class="card-icon">🆕</span><span class="card-type">New Meeting Ready</span></div><div class="card-content">Fresh start! Select meeting type and tap the mic.<div class="say-this">"Thanks everyone for joining. Let\'s make sure we leave with clear owners and next steps."</div></div></div>';
+  setStatus('idle','Ready');
+}
+
+function copyTranscript() {
+  if(!fullTranscript.trim()){showError('Nothing to copy yet.');return;}
+  navigator.clipboard.writeText(fullTranscript).then(function(){
+    showSilent('Transcript copied to clipboard!');
+  }).catch(function(){
+    showError('Copy failed. Try selecting the text manually.');
+  });
+}
+
+function showSilent(msg) {
+  var s=document.getElementById('coachSection');
+  var el=document.createElement('div'); el.className='silent-indicator'; el.textContent=msg;
+  s.insertBefore(el,s.firstChild); setTimeout(function(){if(el.parentNode)el.remove();},3000);
 }
 
 async function askPermission() {
@@ -169,31 +254,81 @@ function initRecognition() {
   var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   if(!SR){ showError('Use Safari on iPhone.'); return null; }
   var r = new SR();
-  r.continuous=true; r.interimResults=true; r.lang='en-US';
+  r.continuous=true;
+  r.interimResults=true;
+  r.lang='en-US';
+  r.maxAlternatives=3; // Helps with accents — picks best interpretation
+
   r.onresult = function(e) {
     var final='', interim='';
     for(var i=e.resultIndex;i<e.results.length;i++){
-      var t=e.results[i][0].transcript;
-      if(e.results[i].isFinal) final+=t; else interim+=t;
+      // Use highest confidence result to handle accents better
+      var best = '';
+      var bestConf = 0;
+      for(var j=0;j<e.results[i].length;j++){
+        if(e.results[i][j].confidence > bestConf){
+          bestConf = e.results[i][j].confidence;
+          best = e.results[i][j].transcript;
+        }
+      }
+      if(e.results[i].isFinal) final+=best; else interim+=best;
     }
     if(final){
       fullTranscript+=' '+final; buffer+=' '+final;
-      updateT(final.trim());
-      clearTimeout(coachTimer);
-      coachTimer=setTimeout(function(){
-        if(buffer.trim().length>15){analyze(buffer.trim());buffer='';}
-      },4000);
-    } else if(interim) updateT(interim.trim());
+      wordCount += final.trim().split(/\s+/).length;
+      updateTranscript(final.trim());
+      updateWordCount();
+      
+      // For standup — only analyze if trigger words present
+      if(meetingType === 'standup'){
+        var tl = final.toLowerCase();
+        var hasTrigger = standupTriggers.some(function(t){return tl.indexOf(t)>-1;});
+        if(hasTrigger){
+          clearTimeout(coachTimer);
+          coachTimer=setTimeout(function(){analyze(buffer.trim());buffer='';},3000);
+        } else {
+          // Just clear buffer but don't analyze
+          clearTimeout(coachTimer);
+          coachTimer=setTimeout(function(){buffer='';},8000);
+        }
+      } else {
+        clearTimeout(coachTimer);
+        coachTimer=setTimeout(function(){
+          if(buffer.trim().length>20){analyze(buffer.trim());buffer='';}
+        },5000);
+      }
+    } else if(interim){
+      updateTranscriptInterim(interim.trim());
+    }
   };
-  r.onerror=function(e){ if(e.error==='not-allowed'){showError('Mic blocked. Settings → Safari → Microphone → Allow');stopListening();} };
+  r.onerror=function(e){ 
+    if(e.error==='not-allowed'){showError('Mic blocked. Settings → Safari → Microphone → Allow');stopListening();}
+    else if(e.error!=='no-speech'){ /* ignore no-speech */ }
+  };
   r.onend=function(){ if(isListening) setTimeout(function(){try{r.start();}catch(e){}},300); };
   return r;
 }
 
-function updateT(t){
+function updateTranscript(text){
   var el=document.getElementById('transcriptEl');
   el.classList.remove('empty');
-  if(t) el.textContent=t;
+  el.textContent = fullTranscript.trim();
+  // Auto scroll to bottom
+  var inner = document.getElementById('transcriptInner');
+  inner.scrollTop = inner.scrollHeight;
+}
+
+function updateTranscriptInterim(text){
+  // Show interim in dimmed style at end
+  var el=document.getElementById('transcriptEl');
+  el.classList.remove('empty');
+  el.textContent = fullTranscript.trim() + ' ' + text;
+  var inner = document.getElementById('transcriptInner');
+  inner.scrollTop = inner.scrollHeight;
+}
+
+function updateWordCount(){
+  document.getElementById('wordCount').textContent = wordCount + ' words captured';
 }
 
 function toggleListening(){ isListening?stopListening():startListening(); }
@@ -207,6 +342,9 @@ function startListening(){
     document.getElementById('micBtn').textContent='⏹️';
     document.getElementById('micLabel').textContent='Listening... tap to stop';
     setStatus('listening','Listening');
+    if(meetingType==='standup'){
+      showSilent('Standup mode — listening silently until a blocker or risk is mentioned');
+    }
   }catch(e){showError('Could not start mic.');}
 }
 
@@ -227,13 +365,35 @@ function setStatus(type,text){
   document.getElementById('statusText').textContent=text;
 }
 
+function getMeetingContext(){
+  var contexts = {
+    standup: 'This is a daily standup meeting. Team members are giving status updates. Pantha is the Product Owner listening. She should ONLY speak up when there is a blocker, risk, unclear item, missing owner, or decision needed. Otherwise stay silent.',
+    general: 'This is a general team meeting. Pantha is the Product Owner facilitating and participating. She should keep discussion on track, capture decisions, identify owners, and clarify unclear points.',
+    review: 'This is a review or planning meeting. Pantha is the Product Owner. She should focus on decisions, risks, action item owners, timelines, and business value.'
+  };
+  return contexts[meetingType] || contexts.general;
+}
+
 async function analyze(text){
-  if(thinking) return;
+  if(thinking||!text||text.trim().length<10) return;
   thinking=true; setStatus('thinking','Thinking...'); showThinking();
 
-  var systemPrompt = 'You are a Product Owner meeting coach for Pantha Shah, a first-time PO at Walgreens working on fixing status mismatches between Promote and IC+ systems. Mario Cano escalated this. Team: Lakshmi Vijai, Tarun Kumar, Smita Wandhare, Vinoth. Need production logs from Sayantan Bera at TCS.\n\nGive Pantha one specific thing to say right now. Be specific to what was just said. Give different advice each time.\n\nRespond with ONLY the words Pantha should say. Natural human language. No labels. No explanation. Maximum 25 words.';
+  var systemPrompt = 'You are a real-time Product Owner meeting coach for Pantha Shah at Walgreens.\n\n' +
+    'MEETING CONTEXT: ' + getMeetingContext() + '\n\n' +
+    'PO COACHING FOCUS:\n' +
+    '- Identify blockers and help remove them\n' +
+    '- Capture who owns each action item\n' +
+    '- Clarify vague or unclear statements\n' +
+    '- Push back on missing timelines\n' +
+    '- Ask for plain English on technical jargon\n' +
+    '- Confirm decisions out loud before moving on\n' +
+    '- Connect work to business priorities\n' +
+    '- Keep meeting on track\n\n' +
+    'Give Pantha ONE specific thing to say right now. Be specific to what was just said. Different from previous coaching. Natural human language.\n\n' +
+    'If it is a standup and nothing requires PO action, respond with exactly: SILENT\n\n' +
+    'Otherwise respond with ONLY the exact words Pantha should say. Maximum 25 words.';
 
-  var userMsg = 'What was just said: "' + text + '"\n\nPrevious coaching: "' + lastCoaching + '"\n\nConversation so far: "' + fullTranscript.slice(-300) + '"';
+  var userMsg = 'Just said: "' + text + '"\n\nPrevious coaching: "' + lastCoaching + '"\n\nMeeting so far: "' + fullTranscript.slice(-500) + '"';
 
   try{
     var res = await fetch('https://api.anthropic.com/v1/messages', {
@@ -246,7 +406,7 @@ async function analyze(text){
       },
       body: JSON.stringify({
         model: 'claude-haiku-4-5-20251001',
-        max_tokens: 100,
+        max_tokens: 120,
         system: systemPrompt,
         messages: [{role: 'user', content: userMsg}]
       })
@@ -263,17 +423,24 @@ async function analyze(text){
     var raw = data.content && data.content[0] ? data.content[0].text.trim() : '';
     raw = raw.replace(/^["']|["']$/g,'').trim();
 
-    if(raw.length > 5){
-      lastCoaching = raw;
-      var type='suggestion', icon='💡';
-      var tl=text.toLowerCase();
-      if(tl.indexOf('agree')>-1||tl.indexOf('decision')>-1||tl.indexOf('confirm')>-1){type='urgent';icon='🚨';}
-      else if(tl.indexOf('done')>-1||tl.indexOf('complete')>-1){type='positive';icon='✅';}
-      else if(tl.indexOf("don't know")>-1||tl.indexOf('not sure')>-1||tl.indexOf('unclear')>-1){type='warning';icon='⚠️';}
-      else if(tl.indexOf('week')>-1||tl.indexOf('when')>-1||tl.indexOf('timeline')>-1){type='urgent';icon='⏰';}
-      var labels={urgent:'Speak Up Now',suggestion:'Coach Tip',positive:'Good Move',warning:'Watch Out'};
-      addCard({type:type,icon:icon,label:labels[type],observation:'Based on what was just said:',say_this:raw});
+    if(raw === 'SILENT' || raw.length < 3){
+      // Stay silent — just show a subtle indicator
+      removeThinking();
+      showSilent('🔇 Listening silently...');
+      setStatus('listening','Listening');
+      thinking=false; return;
     }
+
+    lastCoaching = raw;
+    var type='suggestion', icon='💡';
+    var tl=text.toLowerCase();
+    if(tl.indexOf('block')>-1||tl.indexOf('stuck')>-1||tl.indexOf('can\'t')>-1){type='urgent';icon='🚨';}
+    else if(tl.indexOf('agree')>-1||tl.indexOf('decision')>-1||tl.indexOf('confirm')>-1){type='urgent';icon='✅';}
+    else if(tl.indexOf('done')>-1||tl.indexOf('complete')>-1||tl.indexOf('finished')>-1){type='positive';icon='🎉';}
+    else if(tl.indexOf("don't know")>-1||tl.indexOf('not sure')>-1||tl.indexOf('unclear')>-1||tl.indexOf('risk')>-1){type='warning';icon='⚠️';}
+    else if(tl.indexOf('week')>-1||tl.indexOf('when')>-1||tl.indexOf('timeline')>-1||tl.indexOf('deadline')>-1){type='urgent';icon='⏰';}
+    var labels={urgent:'Speak Up Now',suggestion:'Coach Tip',positive:'Good Move',warning:'Watch Out'};
+    addCard({type:type,icon:icon,label:labels[type],say_this:raw});
 
     removeThinking(); setStatus('listening','Listening');
   }catch(e){
@@ -296,10 +463,10 @@ function removeThinking(){ var el=document.getElementById('thinkEl'); if(el)el.r
 function addCard(c){
   var s=document.getElementById('coachSection');
   var card=document.createElement('div'); card.className='coach-card '+c.type;
-  card.innerHTML='<div class="card-header"><span class="card-icon">'+c.icon+'</span><span class="card-type">'+c.label+'</span></div><div class="card-content">'+c.observation+'<div class="say-this">"'+c.say_this+'"</div></div>';
+  card.innerHTML='<div class="card-header"><span class="card-icon">'+c.icon+'</span><span class="card-type">'+c.label+'</span></div><div class="card-content"><div class="say-this">"'+c.say_this+'"</div></div>';
   s.insertBefore(card,s.firstChild);
   var cards=s.querySelectorAll('.coach-card');
-  if(cards.length>5) cards[cards.length-1].remove();
+  if(cards.length>4) cards[cards.length-1].remove();
 }
 
 async function getSummary(){
@@ -311,9 +478,9 @@ async function getSummary(){
       headers:{'Content-Type':'application/json','x-api-key':API_KEY,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
       body:JSON.stringify({
         model:'claude-haiku-4-5-20251001',
-        max_tokens:500,
-        system:'Extract action items for Pantha Shah, first-time Product Owner at Walgreens Digital Refill project. Return a numbered list only. Max 6 items. Each starts with a verb. Be specific to her PO role.',
-        messages:[{role:'user',content:'Meeting transcript:\n'+fullTranscript}]
+        max_tokens:600,
+        system:'Extract action items for Pantha Shah, Product Owner at Walgreens. Return a numbered list. Max 6 items. Each starts with a verb. Be specific to what was discussed. Include who owns each item if mentioned.',
+        messages:[{role:'user',content:'Meeting type: '+meetingType+'\n\nTranscript:\n'+fullTranscript}]
       })
     });
     var data=await res.json();

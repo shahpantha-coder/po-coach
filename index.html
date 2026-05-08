@@ -245,9 +245,9 @@ async function analyze(text){
     'Reply with ONLY the exact words Pantha should say. Natural conversational language. No labels. No explanation. Just the words. Maximum 25 words.';
 
   try{
-    var res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key='+GEMINI_KEY,{
+    var res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent',{
       method:'POST',
-      headers:{'Content-Type':'application/json'},
+      headers:{'Content-Type':'application/json','x-goog-api-key':GEMINI_KEY},
       body:JSON.stringify({
         contents:[{parts:[{text:prompt}]}],
         generationConfig:{temperature:0.9,maxOutputTokens:100}
@@ -311,9 +311,9 @@ async function getSummary(){
   var prompt = 'Based on this meeting transcript, list the specific action items for Pantha Shah who is the Product Owner at Walgreens on the Digital Refill project. Number each item and start with a verb. Maximum 6 items. Be specific to her PO role.\n\nTranscript:\n'+fullTranscript;
 
   try{
-    var res=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key='+GEMINI_KEY,{
+    var res=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent',{
       method:'POST',
-      headers:{'Content-Type':'application/json'},
+      headers:{'Content-Type':'application/json','x-goog-api-key':GEMINI_KEY},
       body:JSON.stringify({
         contents:[{parts:[{text:prompt}]}],
         generationConfig:{temperature:0.3,maxOutputTokens:400}
